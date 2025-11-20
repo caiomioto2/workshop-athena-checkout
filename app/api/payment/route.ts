@@ -27,6 +27,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validações simples
+    if (!body.email.includes('@')) {
+      return NextResponse.json(
+        { error: 'Email inválido' },
+        { status: 400 }
+      );
+    }
+
+    const cleanCPF = body.cpf.replace(/\D/g, '');
+    if (cleanCPF.length !== 11 || /^(\d)\1{10}$/.test(cleanCPF)) {
+      return NextResponse.json(
+        { error: 'CPF inválido' },
+        { status: 400 }
+      );
+    }
+
     // Configuração da API AbaCatePay
     const abaCatePayUrl = process.env.ABACATEPAY_API_URL || 'https://api.abacatepay.com/v1';
     const apiKey = process.env.ABACATEPAY_API_KEY;
