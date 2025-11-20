@@ -29,22 +29,23 @@ export async function POST(request: NextRequest) {
         'Accept': 'application/json',
       },
       body: JSON.stringify({
-        amount: amount,
-        description: 'Workshop Claude Code Pro - 3h Ao Vivo',
+        frequency: 'ONE_TIME',
+        methods: ['PIX'],
+        products: [{
+          externalId: `workshop-${Date.now()}`,
+          name: 'Workshop Athena.AGI - Claude Code & Gemini CLI',
+          description: 'Workshop de 3 horas com networking e hands-on',
+          quantity: 1,
+          price: amount
+        }],
         customer: {
           name: name,
-          phone: phone,
-          email: email || `${phone.replace(/\D/g, '')}@temp.workshop`
+          cellphone: phone.replace(/\D/g, ''),
+          email: email || `${phone.replace(/\D/g, '')}@temp.workshop`,
+          taxId: '00000000000'
         },
-        methods: ['PIX'],
-        frequency: 'once', // Pagamento único
-        webhook: WEBHOOK_URL,
-        expires_in: 3600, // 1 hora
-        metadata: {
-          workshop: 'claude-code-pro',
-          customer_phone: phone,
-          source: 'workshop-checkout'
-        }
+        returnUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+        completionUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/success`
       })
     });
 
@@ -84,14 +85,15 @@ export async function POST(request: NextRequest) {
       console.warn('Erro ao enviar para webhook n8n:', webhookError);
     }
 
+    // AbaCatePay response structure
     return NextResponse.json({
       success: true,
       billingId: billingData.id,
       paymentUrl: billingData.url,
-      qrCodeUrl: billingData.qr_code?.url,
-      qrCode: billingData.qr_code?.text,
+      qrCodeUrl: billingData.bill?.pix?.qrCodeUrl || billingData.qrCodeUrl,
+      qrCode: billingData.bill?.pix?.qrCode || billingData.qrCode,
       amount: amount,
-      expiresAt: billingData.expires_at
+      expiresAt: billingData.devolutionAt
     });
 
   } catch (error) {

@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.abacatepay.com)",
+      "WebFetch(domain:abacatepay.com)",
+      "Bash(if [ -f ~/.claude/settings.json ])",
+      "Bash(then echo \"GLOBAL_SETTINGS_EXISTS\")",
+      "Bash(if [ -f ~/.claude/mcp.json ])",
+      "Bash(then echo \"GLOBAL_MCP_EXISTS\")",
+      "Bash(then echo \"PROJECT_MCP_EXISTS\")",
+      "Bash(npm run dev:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
