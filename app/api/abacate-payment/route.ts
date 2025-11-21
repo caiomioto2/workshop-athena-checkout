@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const ABACATEPAY_API_KEY = process.env.ABACATEPAY_API_KEY;
-const ABACATEPAY_API_URL = process.env.ABACATEPAY_API_URL || 'https://api.abacatepay.com/v1/billing/create';
+const ABACATEPAY_API_URL = process.env.ABACATEPAY_API_URL || 'https://api.abacatepay.com/v1';
 const WEBHOOK_URL = process.env.WEBHOOK_URL || 'https://whk.agentikai.com.br/webhook/abacate-integration';
 
 export async function POST(request: NextRequest) {
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     console.log('Payload enviado para AbacatePay:', JSON.stringify(payload, null, 2));
 
-    const billingResponse = await fetch(ABACATEPAY_API_URL, {
+    const billingResponse = await fetch(`${ABACATEPAY_API_URL}/billing/create`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${ABACATEPAY_API_KEY}`,
