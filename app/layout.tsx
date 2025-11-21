@@ -2,26 +2,17 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 // Google Fonts imports
-import { Poppins } from 'next/font/google';
-import { Inter } from 'next/font/google';
-import { Patrick_Hand } from 'next/font/google';
+import { JetBrains_Mono, VT323 } from 'next/font/google';
 
-const poppins = Poppins({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
-  weight: ['700', '800'],
-  variable: '--font-poppins',
+  variable: '--font-jetbrains',
 });
 
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500'],
-  variable: '--font-inter',
-});
-
-const patrickHand = Patrick_Hand({
-  subsets: ['latin'],
+const vt323 = VT323({
   weight: '400',
-  variable: '--font-handwritten',
+  subsets: ['latin'],
+  variable: '--font-vt323',
 });
 
 export const metadata: Metadata = {
@@ -52,7 +43,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning={true}>
       <body
-        className={`${inter.variable} ${poppins.variable} ${patrickHand.variable} font-inter antialiased bg-background-primary text-text-primary`}
+        className={`${jetbrainsMono.variable} ${vt323.variable} font-mono antialiased bg-claude-bg text-claude-text`}
         suppressHydrationWarning={true}
       >
         {children}

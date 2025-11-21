@@ -7,7 +7,7 @@ const WEBHOOK_URL = process.env.WEBHOOK_URL || 'https://whk.agentikai.com.br/web
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, phone, amount = 2000 } = body; // R$ 20,00 em centavos
+    const { name, email, phone, cpf, amount = 2000 } = body; // R$ 20,00 em centavos
 
     // Validate API key configuration
     if (!ABACATEPAY_API_KEY) {
@@ -18,9 +18,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Criando pagamento AbacatePay:', { name, phone, amount });
+    console.log('Criando pagamento AbacatePay:', { name, email, phone, cpf, amount });
 
     // Criar cobrança direta no AbacatePay
+    const payload = {
+      frequency: 'ONE_TIME',
+      methods: ['PIX'],
+      products: [{
+        externalId: `workshop-${Date.now()}`,
+        name: 'Workshop Agentik AI - Claude Code & Gemini CLI',
+        description: 'Workshop de 3 horas com networking e hands-on',
+        quantity: 1,
+        price: amount
+      }],
+      customer: {
+        name: name,
+        taxId: cpf,
+        cellphone: phone,
+        email: email
+      },
+      returnUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+      completionUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/success`
+    };
+
+    console.log('Payload enviado para AbacatePay:', JSON.stringify(payload, null, 2));
+
     const billingResponse = await fetch(ABACATEPAY_API_URL, {
       method: 'POST',
       headers: {
@@ -28,25 +50,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify({
-        frequency: 'ONE_TIME',
-        methods: ['PIX'],
-        products: [{
-          externalId: `workshop-${Date.now()}`,
-          name: 'Workshop Athena.AGI - Claude Code & Gemini CLI',
-          description: 'Workshop de 3 horas com networking e hands-on',
-          quantity: 1,
-          price: amount
-        }],
-        customer: {
-          name: name,
-          cellphone: phone.replace(/\D/g, ''),
-          email: email || `${phone.replace(/\D/g, '')}@temp.workshop`,
-          taxId: '00000000000'
-        },
-        returnUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
-        completionUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/success`
-      })
+      body: JSON.stringify(payload)
     });
 
     if (!billingResponse.ok) {
@@ -61,8 +65,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const billingData = await billingResponse.json();
-    console.log('Cobrança criada:', billingData);
+    const responseJson = await billingResponse.json();
+    console.log('Cobrança criada (FULL):', JSON.stringify(responseJson, null, 2));
+
+    const billingData = responseJson.data;
 
     // Envia dados do cliente para o n8n
     try {
@@ -74,7 +80,9 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           event: 'customer_data',
           name: name,
+          email: email,
           phone: phone,
+          cpf: cpf,
           amount: amount,
           billing_id: billingData.id,
           status: 'pending',
@@ -90,8 +98,8 @@ export async function POST(request: NextRequest) {
       success: true,
       billingId: billingData.id,
       paymentUrl: billingData.url,
-      qrCodeUrl: billingData.bill?.pix?.qrCodeUrl || billingData.qrCodeUrl,
-      qrCode: billingData.bill?.pix?.qrCode || billingData.qrCode,
+      qrCodeUrl: billingData.pix?.qrCodeUrl || billingData.bill?.pix?.qrCodeUrl,
+      qrCode: billingData.pix?.qrCode || billingData.bill?.pix?.qrCode,
       amount: amount,
       expiresAt: billingData.devolutionAt
     });

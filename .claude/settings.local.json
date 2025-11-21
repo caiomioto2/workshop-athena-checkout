@@ -8,8 +8,90 @@
       "Bash(if [ -f ~/.claude/mcp.json ])",
       "Bash(then echo \"GLOBAL_MCP_EXISTS\")",
       "Bash(then echo \"PROJECT_MCP_EXISTS\")",
-      "Bash(npm run dev:*)"
-    ],
+      "Bash(npm run dev:*)",
+      "Bash(mkdir:*)"
+    ]
+  },
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/workspace/host"
+      ]
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ]
+    },
+    "serena": {
+      "command": "sh",
+      "args": [
+        "-c",
+        "docker run --rm -i --network ${DOCKER_NETWORK:-airis-mcp-gateway_default} -v ${HOST_WORKSPACE_DIR}:/workspaces/projects:rw ghcr.io/oraios/serena:latest serena start-mcp-server --context ide-assistant --enable-web-dashboard false --enable-gui-log-window false"
+      ]
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-puppeteer"
+      ]
+    },
+    "mindbase": {
+      "command": "sh",
+      "args": [
+        "-c",
+        "docker run --rm -i --network ${DOCKER_NETWORK:-airis-mcp-gateway_default} -e MINDBASE_API_URL=${MINDBASE_API_URL:-http://mindbase-api:18002} -v ${HOST_REPO_DIR}/servers/mindbase:/app:ro -w /app node:24-alpine node dist/index.js"
+      ]
+    },
+    "self-management": {
+      "command": "sh",
+      "args": [
+        "-c",
+        "docker run --rm -i --network ${DOCKER_NETWORK:-airis-mcp-gateway_default} -e GATEWAY_API_URL=${GATEWAY_API_URL:-http://mcp-gateway:9390/api} -v ${HOST_REPO_DIR}/servers/self-management:/app:ro -w /app node:24-alpine node dist/index.js"
+      ]
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest"
+      ]
+    },
+    "time": {
+      "command": ""
+    },
+    "fetch": {
+      "command": ""
+    },
+    "git": {
+      "command": ""
+    },
+    "memory": {
+      "command": ""
+    }
+  },
+  "permissionLevels": {
+    "allow": [],
     "deny": [],
     "ask": []
   }

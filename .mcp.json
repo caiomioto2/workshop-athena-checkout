@@ -1,0 +1,80 @@
+{
+    "mcpServers": {
+        "filesystem": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@modelcontextprotocol/server-filesystem",
+                "C:/Users/User/workshop-athena-checkout"
+            ]
+        },
+        "context7": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@upstash/context7-mcp"
+            ]
+        },
+        "sequential-thinking": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@modelcontextprotocol/server-sequential-thinking"
+            ]
+        },
+        "playwright": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@playwright/mcp@latest"
+            ]
+        },
+        "serena": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "docker run --rm -i --network airis-mcp-gateway_default -v C:/Users/User/workshop-athena-checkout:/workspaces/projects:rw ghcr.io/oraios/serena:latest serena start-mcp-server --context ide-assistant --enable-web-dashboard false --enable-gui-log-window false"
+            ]
+        },
+        "puppeteer": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@modelcontextprotocol/server-puppeteer"
+            ]
+        },
+        "mindbase": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "docker run --rm -i --network airis-mcp-gateway_default -e MINDBASE_API_URL=http://mindbase-api:18002 -v C:/Users/User/workshop-athena-checkout/servers/mindbase:/app:ro -w /app node:24-alpine node dist/index.js"
+            ]
+        },
+        "self-management": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "docker run --rm -i --network airis-mcp-gateway_default -e GATEWAY_API_URL=http://mcp-gateway:9390/api -v C:/Users/User/workshop-athena-checkout/servers/self-management:/app:ro -w /app node:24-alpine node dist/index.js"
+            ]
+        },
+        "chrome-devtools": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "chrome-devtools-mcp@latest"
+            ]
+        }
+    }
+}

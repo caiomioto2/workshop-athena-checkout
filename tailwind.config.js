@@ -8,6 +8,15 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Retro Terminal / Claude Code Colors
+        claude: {
+          bg: '#DD8468',
+          dark: '#121212',
+          accent: '#FF5E3A',
+          text: '#F0F0F0',
+          dim: '#888888',
+          border: '#333333',
+        },
         // Cigano Agi Design System Colors
         primary: {
           50: '#E6F0FF',
@@ -68,6 +77,8 @@ module.exports = {
         },
       },
       fontFamily: {
+        'mono': ['var(--font-jetbrains)', 'monospace'],
+        'vt323': ['var(--font-vt323)', 'monospace'],
         'poppins': ['Poppins', 'sans-serif'],
         'inter': ['Inter', 'sans-serif'],
         'handwritten': ['Patrick Hand', 'cursive'],

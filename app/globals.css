@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --background: #FFFFFF;
-    --foreground: #0C1222;
+    --background: #DD8468;
+    --foreground: #F0F0F0;
   }
 
   * {
@@ -13,8 +13,12 @@
   }
 
   body {
-    @apply bg-background-primary text-text-primary font-sans;
+    @apply bg-claude-bg text-claude-text font-mono;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-vt323;
   }
 
   html {
@@ -23,45 +27,33 @@
 }
 
 @layer components {
-  /* Card Component Styles */
-  .card {
-    @apply bg-white rounded-card shadow-soft border border-gray-100;
-  }
-
-  .card-hover {
-    @apply transition-all duration-200 hover:shadow-medium hover:-translate-y-1;
-  }
+  /* Terminal Card - usually handled by component, but general utilities here */
 
   /* Button Component Styles */
   .btn-primary {
-    @apply bg-primary-500 hover:bg-primary-600 text-white font-poppins font-bold py-3 px-6 rounded-button shadow-soft transition-all duration-200 hover:shadow-medium hover:-translate-y-0.5;
+    @apply bg-claude-accent hover:bg-[#ff7a5c] text-claude-dark font-mono font-bold py-3 px-6 border-2 border-claude-dark shadow-[4px_4px_0px_0px_#121212] transition-all duration-100 active:translate-y-[2px] active:translate-x-[2px] active:shadow-[2px_2px_0px_0px_#121212];
   }
 
   .btn-secondary {
-    @apply bg-background-surface hover:bg-gray-50 text-text-primary font-poppins font-medium py-3 px-6 rounded-button shadow-soft transition-all duration-200 hover:shadow-medium;
+    @apply bg-claude-bg hover:bg-[#e6957a] text-claude-dark font-mono font-bold py-3 px-6 border-2 border-claude-dark shadow-[4px_4px_0px_0px_#121212] transition-all duration-100 active:translate-y-[2px] active:translate-x-[2px] active:shadow-[2px_2px_0px_0px_#121212];
   }
 
   /* Badge Component Styles */
   .badge-primary {
-    @apply bg-primary-100 text-primary-700 font-poppins font-semibold text-sm px-3 py-1 rounded-full;
+    @apply bg-claude-dark text-claude-text border border-claude-dim font-mono text-xs px-2 py-1 uppercase tracking-wider;
   }
 
   .badge-success {
-    @apply bg-success-100 text-success-700 font-poppins font-semibold text-sm px-3 py-1 rounded-full;
+    @apply bg-[#27C93F] text-black border border-black font-mono text-xs px-2 py-1 uppercase tracking-wider;
   }
 
-  /* Handwritten accent styles */
+  /* Handwritten accent styles - kept for compatibility but styled retro */
   .handwritten {
-    @apply font-handwritten text-primary-600 font-normal;
+    @apply font-vt323 text-claude-dark text-xl;
   }
 
   .highlight-text {
-    @apply relative;
-  }
-
-  .highlight-text::after {
-    content: '';
-    @apply absolute -bottom-1 left-0 w-full h-3 bg-primary-100 opacity-50 -z-10 rounded-sm;
+    @apply text-claude-accent;
   }
 }
 
@@ -71,6 +63,10 @@
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-primary-500 to-primary-700 bg-clip-text text-transparent;
+    @apply text-claude-accent;
+  }
+
+  .retro-shadow {
+    @apply shadow-[8px_8px_0px_0px_rgba(0,0,0,0.8)];
   }
 }
