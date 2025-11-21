@@ -172,7 +172,7 @@ export default function WorkshopCheckout() {
                        <h4 className="text-3xl font-vt323 text-claude-text mb-2">CAIO MIOTO</h4>
                        <p className="font-mono text-claude-accent text-sm mb-4">CEO @ AGENTIK_AI</p>
                        <p className="font-mono text-sm text-claude-dim leading-relaxed">
-                          "Especialista em IA e ferramentas de desenvolvimento. Vamos transformar sua produtividade com as melhores ferramentas do mercado."
+                          "Especialista em Automação & IA para Marketing e Vendas. Vou ser seu guia e mostrar como eu uso o Claude Code para construir sites igual esse que você está agora."
                        </p>
                     </div>
                  </div>
