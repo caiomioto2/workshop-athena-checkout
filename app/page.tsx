@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Sparkles, Code, Terminal, Users, Calendar, Clock, MapPin, CreditCard, CheckCircle, Loader2 } from 'lucide-react';
 import WorkshopCards from '../components/WorkshopCards';
 import TerminalCard from '../components/TerminalCard';
+import ComoFunciona from '../components/ComoFunciona';
 import { fireConfetti } from '@/components/ui/confetti';
 
 export default function WorkshopCheckout() {
@@ -293,6 +294,10 @@ export default function WorkshopCheckout() {
                     </div>
                  </div>
              </TerminalCard>
+
+            <div className="mt-8 mb-8">
+               <ComoFunciona />
+            </div>
 
              <TerminalCard title="curriculum.tree">
                 <h3 className="text-2xl font-vt323 text-claude-text mb-8">ESTRUTURA_DO_WORKSHOP</h3>
