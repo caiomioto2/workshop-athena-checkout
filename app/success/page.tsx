@@ -199,6 +199,9 @@ export default function SuccessPage() {
           <div className="text-center mt-6 text-sm text-gray-600">
             <p className="font-medium">✨ Obrigado por fazer parte do Workshop CLI Tools!</p>
             <p>Prepare-se para elevar suas habilidades. 🎯</p>
+            <p className="font-mono text-xs text-gray-500 mt-2">
+              POWERED_BY: <span className="font-bold">Agentik AI</span>
+            </p>
           </div>
         </div>
       </div>

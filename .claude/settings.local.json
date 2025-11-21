@@ -12,7 +12,8 @@
       "Bash(mkdir:*)",
       "Bash(npm run build:*)",
       "Bash(npm install:*)",
-      "Bash(npm i:*)"
+      "Bash(npm i:*)",
+      "Bash(gh repo view:*)"
     ]
   },
   "disabledMcpjsonServers": [

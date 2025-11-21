@@ -338,7 +338,7 @@ export default function WorkshopCheckout() {
       <footer className="max-w-7xl mx-auto mt-20 pt-8 border-t border-claude-dark/20 text-center pb-8">
          <p className="font-mono text-xs text-claude-dark/60">
             © 2025 FERRAMENTAS_CLI_WORKSHOP <br/>
-            POWERED_BY: <span className="font-bold">CLAUDE_CODE</span>
+            POWERED_BY: <span className="font-bold">Agentik AI</span>
          </p>
       </footer>
     </div>
