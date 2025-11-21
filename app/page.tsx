@@ -17,6 +17,41 @@ export default function WorkshopCheckout() {
   const [showForm, setShowForm] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const [pixData, setPixData] = useState<{ qrCode?: string; qrCodeUrl?: string; paymentUrl?: string; billingId: string } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  // CPF validation function
+  const validateCPF = (cpf: string): boolean => {
+    // Remove all non-digit characters
+    const cleanCPF = cpf.replace(/\D/g, '');
+
+    // Check if CPF has exactly 11 digits
+    if (cleanCPF.length !== 11) return false;
+
+    // Check if all digits are the same (invalid CPF)
+    if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
+
+    // Calculate first verification digit
+    let sum = 0;
+    for (let i = 0; i < 9; i++) {
+      sum += parseInt(cleanCPF.charAt(i)) * (10 - i);
+    }
+    let remainder = sum % 11;
+    const digit1 = remainder < 2 ? 0 : 11 - remainder;
+
+    // Calculate second verification digit
+    sum = 0;
+    for (let i = 0; i < 10; i++) {
+      sum += parseInt(cleanCPF.charAt(i)) * (11 - i);
+    }
+    remainder = sum % 11;
+    const digit2 = remainder < 2 ? 0 : 11 - remainder;
+
+    // Check if the calculated digits match the provided ones
+    return (
+      parseInt(cleanCPF.charAt(9)) === digit1 &&
+      parseInt(cleanCPF.charAt(10)) === digit2
+    );
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -27,6 +62,16 @@ export default function WorkshopCheckout() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage('');
+
+    // Validate CPF first
+    if (!validateCPF(formData.cpf)) {
+      setPaymentStatus('error');
+      setErrorMessage('CPF inválido. Verifique se você digitou todos os 11 dígitos corretamente.');
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setPaymentStatus('processing');
 
@@ -69,11 +114,19 @@ export default function WorkshopCheckout() {
         }, 800);
       } else {
         setPaymentStatus('error');
+        // Check if error might be related to invalid CPF
+        const errorMsg = data.error || '';
+        if (errorMsg.toLowerCase().includes('taxid') || errorMsg.toLowerCase().includes('cpf')) {
+          setErrorMessage('Erro ao criar pagamento: Possivelmente CPF inválido. Verifique se você digitou todos os 11 dígitos corretamente.');
+        } else {
+          setErrorMessage(`${data.error || 'Erro ao processar pagamento. Tente novamente ou entre em contato com o suporte.'} ⚠️ Talvez você tenha inserido um CPF inválido - verifique os 11 dígitos.`);
+        }
         console.error('Erro pagamento:', data);
       }
     } catch (error) {
       console.error('Erro ao processar pagamento:', error);
       setPaymentStatus('error');
+      setErrorMessage(`Erro ao conectar com o servidor. Tente novamente. ⚠️ Verifique se seu CPF está correto.`);
     } finally {
       setLoading(false);
     }
@@ -312,8 +365,14 @@ export default function WorkshopCheckout() {
                 {paymentStatus === 'error' && (
                    <div className="bg-red-500/20 border border-red-500 p-6 text-center">
                       <p className="font-vt323 text-xl text-red-500 mb-4">ERROR: TRANSACTION_FAILED</p>
+                      {errorMessage && (
+                        <p className="text-red-400 text-sm mb-4 font-mono">{errorMessage}</p>
+                      )}
                       <button
-                        onClick={() => setPaymentStatus('idle')}
+                        onClick={() => {
+                          setPaymentStatus('idle');
+                          setErrorMessage('');
+                        }}
                         className="text-red-500 font-mono text-xs underline decoration-red-500"
                       >
                         {`>`} RETRY_CONNECTION
