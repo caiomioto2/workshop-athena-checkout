@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Sparkles, Code, Terminal, Users, Calendar, Clock, MapPin, CreditCard, CheckCircle, Loader2 } from 'lucide-react';
 import WorkshopCards from '../components/WorkshopCards';
 import TerminalCard from '../components/TerminalCard';
-import { fireConfetti, fireworksConfetti } from '@/components/ui/confetti';
+import { fireConfetti } from '@/components/ui/confetti';
 
 export default function WorkshopCheckout() {
   const [formData, setFormData] = useState({
@@ -166,19 +166,15 @@ export default function WorkshopCheckout() {
         setPaymentStatus('success');
         console.log('Cobrança criada:', data);
 
-        // Trigger celebration confetti when payment is successful
+        // Trigger basic confetti when payment is successful
         setTimeout(() => {
           fireConfetti({
-            particleCount: 150,
-            spread: 70,
+            particleCount: 50,
+            spread: 45,
             origin: { y: 0.6 },
-            colors: ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff']
+            colors: ['#26ccff', '#a25afd', '#ff5e7e']
           });
         }, 300);
-
-        setTimeout(() => {
-          fireworksConfetti();
-        }, 800);
       } else {
         setPaymentStatus('error');
         // Check if error might be related to invalid CPF
