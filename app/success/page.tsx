@@ -56,7 +56,7 @@ export default function SuccessPage() {
         </div>
       )}
 
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           {/* Main Card */}
           <div className="bg-white border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-none p-8 relative overflow-hidden">
@@ -179,8 +179,10 @@ export default function SuccessPage() {
               </Link>
 
               <a
-                href="mailto:contato@athena.agi?subject=Workshop CLI Tools - Dúvidas&body=Olá! Tenho dúvidas sobre o workshop CLI Tools."
-                className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-black py-4 px-6 border-4 border-black hover:from-pink-600 hover:to-purple-700 transition-all transform hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center"
+                href="https://wa.me/+5516997556455?text=Olá! Tenho dúvidas sobre o workshop CLI Tools."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-black py-4 px-6 border-4 border-black hover:from-green-600 hover:to-green-700 transition-all transform hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center"
               >
                 <Mail className="w-5 h-5 mr-2" />
                 Falar com Suporte
@@ -196,7 +198,7 @@ export default function SuccessPage() {
           </div>
 
           {/* Footer Note */}
-          <div className="text-center mt-6 text-sm text-gray-600">
+          <div className="text-center mt-6 text-sm text-gray-300">
             <p className="font-medium">✨ Obrigado por fazer parte do Workshop CLI Tools!</p>
             <p>Prepare-se para elevar suas habilidades. 🎯</p>
             <p className="font-mono text-xs text-gray-500 mt-2">
