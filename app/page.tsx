@@ -18,6 +18,11 @@ export default function WorkshopCheckout() {
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const [pixData, setPixData] = useState<{ qrCode?: string; qrCodeUrl?: string; paymentUrl?: string; billingId: string } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    phone?: string;
+    cpf?: string;
+  }>({});
 
   // CPF validation function
   const validateCPF = (cpf: string): boolean => {
@@ -53,11 +58,57 @@ export default function WorkshopCheckout() {
     );
   };
 
+  // Email validation function
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Phone validation function (Brazilian phone numbers)
+  const validatePhone = (phone: string): boolean => {
+    // Remove all non-digit characters
+    const cleanPhone = phone.replace(/\D/g, '');
+
+    // Check if it has 10 or 11 digits (with or without 9)
+    return cleanPhone.length === 10 || cleanPhone.length === 11;
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+
+    // Real-time validation
+    const newFieldErrors = { ...fieldErrors };
+
+    if (name === 'email') {
+      if (value && !validateEmail(value)) {
+        newFieldErrors.email = 'Email inválido';
+      } else {
+        delete newFieldErrors.email;
+      }
+    }
+
+    if (name === 'phone') {
+      if (value && !validatePhone(value)) {
+        newFieldErrors.phone = 'Celular inválido';
+      } else {
+        delete newFieldErrors.phone;
+      }
+    }
+
+    if (name === 'cpf') {
+      if (value && !validateCPF(value)) {
+        newFieldErrors.cpf = 'CPF inválido';
+      } else {
+        delete newFieldErrors.cpf;
+      }
+    }
+
+    setFieldErrors(newFieldErrors);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,6 +119,22 @@ export default function WorkshopCheckout() {
     if (!validateCPF(formData.cpf)) {
       setPaymentStatus('error');
       setErrorMessage('CPF inválido. Verifique se você digitou todos os 11 dígitos corretamente.');
+      setLoading(false);
+      return;
+    }
+
+    // Validate email
+    if (!validateEmail(formData.email)) {
+      setPaymentStatus('error');
+      setErrorMessage('Email inválido. Verifique se você digitou um email válido (ex: nome@dominio.com).');
+      setLoading(false);
+      return;
+    }
+
+    // Validate phone
+    if (!validatePhone(formData.phone)) {
+      setPaymentStatus('error');
+      setErrorMessage('Celular inválido. Verifique se você digitou um número válido com DDD (ex: (11) 99999-9999).');
       setLoading(false);
       return;
     }
@@ -272,7 +339,7 @@ export default function WorkshopCheckout() {
                     {[
                       { id: 'name', label: 'NOME' },
                       { id: 'email', label: 'EMAIL' },
-                      { id: 'phone', label: 'TELEFONE' },
+                      { id: 'phone', label: 'CELULAR' },
                       { id: 'cpf', label: 'CPF' }
                     ].map((field) => (
                       <div key={field.id}>
@@ -280,14 +347,23 @@ export default function WorkshopCheckout() {
                           {field.label}
                         </label>
                         <input
-                          type={field.id === 'email' ? 'email' : 'text'}
+                          type={field.id === 'email' ? 'email' : field.id === 'phone' ? 'tel' : 'text'}
                           name={field.id}
                           required
                           value={(formData as any)[field.id]}
                           onChange={handleInputChange}
-                          className="w-full bg-[#1a1a1a] border border-claude-border text-claude-text font-mono px-4 py-3 focus:outline-none focus:border-claude-accent transition-colors"
+                          className={`w-full bg-[#1a1a1a] border font-mono px-4 py-3 focus:outline-none transition-colors ${
+                            fieldErrors[field.id as keyof typeof fieldErrors]
+                              ? 'border-red-500 text-red-400'
+                              : 'border-claude-border text-claude-text focus:border-claude-accent'
+                          }`}
                           placeholder={`Digite ${field.label}...`}
                         />
+                        {fieldErrors[field.id as keyof typeof fieldErrors] && (
+                          <p className="text-red-500 text-xs font-mono mt-1">
+                            ⚠️ {fieldErrors[field.id as keyof typeof fieldErrors]}
+                          </p>
+                        )}
                       </div>
                     ))}
 
