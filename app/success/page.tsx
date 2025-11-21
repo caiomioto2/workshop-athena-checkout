@@ -59,14 +59,7 @@ export default function SuccessPage() {
       <div className="min-h-screen bg-black flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           {/* Main Card */}
-          <div className="bg-white border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-none p-8 relative overflow-hidden">
-
-            {/* Decorative Background Pattern */}
-            <div className="absolute inset-0 opacity-5">
-              <div className="absolute inset-0" style={{
-                backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(0,0,0,.05) 35px, rgba(0,0,0,.05) 70px)`,
-              }}></div>
-            </div>
+          <div className="bg-black border-4 border-white shadow-[12px_12px_0px_0px_rgba(255,255,255,1)] rounded-none p-8 relative overflow-hidden">
 
             {/* Success Icon with Animation */}
             <div className="flex justify-center mb-6 relative z-10">
@@ -90,41 +83,41 @@ export default function SuccessPage() {
 
             {/* Order Information */}
             {!loading && orderInfo && (
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-4 border-black rounded-none p-4 mb-6 relative z-10">
+              <div className="bg-gradient-to-r from-gray-800 to-gray-900 border-4 border-white rounded-none p-4 mb-6 relative z-10">
                 <div className="flex items-center justify-center">
                   <Sparkles className="w-6 h-6 mr-2 text-purple-600 animate-pulse" />
-                  <span className="font-bold text-lg">Pedido #{orderInfo.orderNumber}</span>
+                  <span className="font-bold text-lg text-white">Pedido #{orderInfo.orderNumber}</span>
                 </div>
               </div>
             )}
 
             {/* Event Details */}
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-4 border-black rounded-none p-4 mb-6 relative z-10">
-              <h2 className="font-black text-xl mb-4 flex items-center">
-                <Calendar className="w-6 h-6 mr-2 text-purple-600" />
+            <div className="bg-gradient-to-r from-gray-800 to-gray-900 border-4 border-white rounded-none p-4 mb-6 relative z-10">
+              <h2 className="font-black text-xl mb-4 flex items-center text-white">
+                <Calendar className="w-6 h-6 mr-2 text-purple-400" />
                 Detalhes do Evento
               </h2>
 
-              <div className="space-y-3 text-sm">
+              <div className="space-y-3 text-sm text-gray-300">
                 <div className="flex items-start">
-                  <MapPin className="w-5 h-5 mr-3 text-purple-600 mt-0.5" />
+                  <MapPin className="w-5 h-5 mr-3 text-purple-400 mt-0.5" />
                   <div>
-                    <span className="font-bold">Local:</span> Online (Ao Vivo)
+                    <span className="font-bold text-white">Local:</span> Online (Ao Vivo)
                   </div>
                 </div>
 
                 <div className="flex items-start">
-                  <Clock className="w-5 h-5 mr-3 text-purple-600 mt-0.5" />
+                  <Clock className="w-5 h-5 mr-3 text-purple-400 mt-0.5" />
                   <div>
-                    <div><span className="font-bold">Data:</span> à ser definido (mas provavelmente um sabado ou domingo)</div>
-                    <div><span className="font-bold">Horário:</span> à ser definido</div>
+                    <div><span className="font-bold text-white">Data:</span> à ser definido (mas provavelmente um sabado ou domingo)</div>
+                    <div><span className="font-bold text-white">Horário:</span> à ser definido</div>
                   </div>
                 </div>
 
                 <div className="flex items-start">
-                  <Mail className="w-5 h-5 mr-3 text-purple-600 mt-0.5" />
+                  <Mail className="w-5 h-5 mr-3 text-purple-400 mt-0.5" />
                   <div>
-                    <span className="font-bold">Acesso:</span> Link do meet será enviado via whatsapp 24h antes
+                    <span className="font-bold text-white">Acesso:</span> Link do meet será enviado via whatsapp 24h antes
                   </div>
                 </div>
               </div>
