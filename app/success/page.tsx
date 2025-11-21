@@ -84,31 +84,16 @@ export default function SuccessPage() {
               Uhu! <span className="text-green-600">Aprovado!</span> 🎉
             </h1>
 
-            <p className="text-gray-600 text-center mb-6 font-medium relative z-10">
-              Sua inscrição no Workshop CLI Tools está confirmada!
+            <p className="text-gray-300 text-center mb-6 font-medium relative z-10">
+              Sua inscrição no Workshop Claude Code Pro está confirmada!
             </p>
 
             {/* Order Information */}
             {!loading && orderInfo && (
               <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-4 border-black rounded-none p-4 mb-6 relative z-10">
-                <div className="flex items-center justify-center mb-3">
+                <div className="flex items-center justify-center">
                   <Sparkles className="w-6 h-6 mr-2 text-purple-600 animate-pulse" />
                   <span className="font-bold text-lg">Pedido #{orderInfo.orderNumber}</span>
-                </div>
-
-                <div className="text-sm text-gray-600 space-y-2">
-                  {orderInfo.billingId && (
-                    <div className="flex items-center bg-white/50 p-2 rounded">
-                      <span className="mr-2">📋</span>
-                      <span>Cobrança: {orderInfo.billingId.slice(-10)}...</span>
-                    </div>
-                  )}
-                  {orderInfo.paymentId && (
-                    <div className="flex items-center bg-white/50 p-2 rounded">
-                      <span className="mr-2">💳</span>
-                      <span>Pagamento: {orderInfo.paymentId.slice(-10)}...</span>
-                    </div>
-                  )}
                 </div>
               </div>
             )}
@@ -131,43 +116,21 @@ export default function SuccessPage() {
                 <div className="flex items-start">
                   <Clock className="w-5 h-5 mr-3 text-purple-600 mt-0.5" />
                   <div>
-                    <div><span className="font-bold">Data:</span> 21 de Dezembro, 2024</div>
-                    <div><span className="font-bold">Horário:</span> 19h00 - 22h00 (BRT)</div>
+                    <div><span className="font-bold">Data:</span> à ser definido (mas provavelmente um sabado ou domingo)</div>
+                    <div><span className="font-bold">Horário:</span> à ser definido</div>
                   </div>
                 </div>
 
                 <div className="flex items-start">
                   <Mail className="w-5 h-5 mr-3 text-purple-600 mt-0.5" />
                   <div>
-                    <span className="font-bold">Acesso:</span> Link enviado 24h antes
+                    <span className="font-bold">Acesso:</span> Link do meet será enviado via whatsapp 24h antes
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* What's Next */}
-            <div className="bg-gradient-to-r from-blue-50 to-green-50 border-4 border-black rounded-none p-4 mb-6 relative z-10">
-              <h3 className="font-black text-lg mb-3 flex items-center">
-                <Sparkles className="w-5 h-5 mr-2 text-blue-600" />
-                O que acontece agora?
-              </h3>
-
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">1</div>
-                  <span className="text-sm">Confirme seu e-mail</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">2</div>
-                  <span className="text-sm">Receba link de acesso</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">3</div>
-                  <span className="text-sm">Prepare suas ferramentas CLI!</span>
-                </div>
-              </div>
-            </div>
-
+  
             {/* Action Button */}
             <div className="relative z-10">
               <a
@@ -184,7 +147,7 @@ export default function SuccessPage() {
             {/* Celebration Text */}
             <div className="text-center mt-6 relative z-10">
               <div className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 transform -rotate-2 font-bold">
-                🚀 Bem-vindo ao futuro da automação!
+                🚀 Bem-vindo ao futuro da programação!
               </div>
             </div>
           </div>
