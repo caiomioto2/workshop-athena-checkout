@@ -168,16 +168,8 @@ export default function SuccessPage() {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="space-y-3 relative z-10">
-              <Link
-                href="/"
-                className="w-full bg-gradient-to-r from-black to-gray-800 text-white font-black py-4 px-6 border-4 border-black hover:from-gray-800 hover:to-gray-700 transition-all transform hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center group"
-              >
-                <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-                Voltar para Início
-              </Link>
-
+            {/* Action Button */}
+            <div className="relative z-10">
               <a
                 href="https://wa.me/+5516997556455?text=Olá! Tenho dúvidas sobre o workshop CLI Tools."
                 target="_blank"
