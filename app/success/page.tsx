@@ -128,8 +128,6 @@ export default function SuccessPage() {
             <div className="relative z-10">
               <a
                 href="https://wa.me/+5516997556455?text=Olá! Tenho dúvidas sobre o workshop CLI Tools."
-                target="_blank"
-                rel="noopener noreferrer"
                 className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-black py-4 px-6 border-4 border-black hover:from-green-600 hover:to-green-700 transition-all transform hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center"
               >
                 <Mail className="w-5 h-5 mr-2" />

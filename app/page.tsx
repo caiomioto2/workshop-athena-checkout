@@ -408,8 +408,6 @@ export default function WorkshopCheckout() {
                            {/* Fallback button */}
                            <a
                              href={pixData.paymentUrl}
-                             target="_blank"
-                             rel="noopener noreferrer"
                              className="inline-block bg-claude-accent text-claude-dark font-vt323 text-xl py-2 px-6 border-2 border-claude-text shadow-[4px_4px_0px_0px_#F0F0F0] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_#F0F0F0] transition-all"
                            >
                              [ ABRIR_EM_NOVA_ABA ]
