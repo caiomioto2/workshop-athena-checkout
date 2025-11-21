@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         cellphone: phone,
         email: email
       },
-      returnUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+      // returnUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000', // Commented out to potentially remove back button
       completionUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/success`
     };
 
