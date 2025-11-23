@@ -1,474 +1,550 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Sparkles, Code, Terminal, Users, Calendar, Clock, MapPin, CreditCard, CheckCircle, Loader2 } from 'lucide-react';
-import WorkshopCards from '../components/WorkshopCards';
-import TerminalCard from '../components/TerminalCard';
-import { fireConfetti } from '@/components/ui/confetti';
+import { useState, useEffect } from "react";
+import {
+  Sparkles,
+  Code,
+  Terminal,
+  Users,
+  Calendar,
+  Clock,
+  MapPin,
+  CreditCard,
+  CheckCircle,
+  Loader2,
+  Smartphone,
+  QrCode,
+} from "lucide-react";
 
 export default function WorkshopCheckout() {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    cpf: ''
+    name: "",
+    email: "",
+    phone: "",
+    cpf: "",
+    paymentMethod: "credit" as "credit" | "debit" | "pix",
+    installments: 1,
   });
   const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
-  const [pixData, setPixData] = useState<{ qrCode?: string; qrCodeUrl?: string; paymentUrl?: string; billingId: string } | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string>('');
-  const [fieldErrors, setFieldErrors] = useState<{
-    email?: string;
-    phone?: string;
-    cpf?: string;
-  }>({});
+  const [paymentStatus, setPaymentStatus] = useState<
+    "idle" | "processing" | "success" | "error"
+  >("idle");
+  const [paymentData, setPaymentData] = useState<any>(null);
+  const [price] = useState(97.0);
 
-  // CPF validation function
-  const validateCPF = (cpf: string): boolean => {
-    // Remove all non-digit characters
-    const cleanCPF = cpf.replace(/\D/g, '');
-
-    // Check if CPF has exactly 11 digits
-    if (cleanCPF.length !== 11) return false;
-
-    // Check if all digits are the same (invalid CPF)
-    if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
-
-    // Calculate first verification digit
-    let sum = 0;
-    for (let i = 0; i < 9; i++) {
-      sum += parseInt(cleanCPF.charAt(i)) * (10 - i);
-    }
-    let remainder = sum % 11;
-    const digit1 = remainder < 2 ? 0 : 11 - remainder;
-
-    // Calculate second verification digit
-    sum = 0;
-    for (let i = 0; i < 10; i++) {
-      sum += parseInt(cleanCPF.charAt(i)) * (11 - i);
-    }
-    remainder = sum % 11;
-    const digit2 = remainder < 2 ? 0 : 11 - remainder;
-
-    // Check if the calculated digits match the provided ones
-    return (
-      parseInt(cleanCPF.charAt(9)) === digit1 &&
-      parseInt(cleanCPF.charAt(10)) === digit2
-    );
-  };
-
-  // Email validation function
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  // Phone validation function (Brazilian phone numbers)
-  const validatePhone = (phone: string): boolean => {
-    // Remove all non-digit characters
-    const cleanPhone = phone.replace(/\D/g, '');
-
-    // Check if it has 10 or 11 digits (with or without 9)
-    return cleanPhone.length === 10 || cleanPhone.length === 11;
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     setFormData({
       ...formData,
-      [name]: value
+      [e.target.name]: e.target.value,
     });
+  };
 
-    // Real-time validation
-    const newFieldErrors = { ...fieldErrors };
+  const formatCPF = (value: string) => {
+    return value
+      .replace(/\D/g, "")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+      .replace(/(-\d{2})\d+?$/, "$1");
+  };
 
-    if (name === 'email') {
-      if (value && !validateEmail(value)) {
-        newFieldErrors.email = 'Email inválido';
-      } else {
-        delete newFieldErrors.email;
-      }
-    }
-
-    if (name === 'phone') {
-      if (value && !validatePhone(value)) {
-        newFieldErrors.phone = 'Celular inválido';
-      } else {
-        delete newFieldErrors.phone;
-      }
-    }
-
-    if (name === 'cpf') {
-      if (value && !validateCPF(value)) {
-        newFieldErrors.cpf = 'CPF inválido';
-      } else {
-        delete newFieldErrors.cpf;
-      }
-    }
-
-    setFieldErrors(newFieldErrors);
+  const formatPhone = (value: string) => {
+    return value
+      .replace(/\D/g, "")
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d)/, "$1-$2")
+      .replace(/(-\d{4})\d+?$/, "$1");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage('');
-
-    // Validate CPF first
-    if (!validateCPF(formData.cpf)) {
-      setPaymentStatus('error');
-      setErrorMessage('CPF inválido. Verifique se você digitou todos os 11 dígitos corretamente.');
-      setLoading(false);
-      return;
-    }
-
-    // Validate email
-    if (!validateEmail(formData.email)) {
-      setPaymentStatus('error');
-      setErrorMessage('Email inválido. Verifique se você digitou um email válido (ex: nome@dominio.com).');
-      setLoading(false);
-      return;
-    }
-
-    // Validate phone
-    if (!validatePhone(formData.phone)) {
-      setPaymentStatus('error');
-      setErrorMessage('Celular inválido. Verifique se você digitou um número válido com DDD (ex: (11) 99999-9999).');
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
-    setPaymentStatus('processing');
+    setPaymentStatus("processing");
 
     try {
-      const response = await fetch('/api/abacate-payment', {
-        method: 'POST',
+      const response = await fetch("/api/infinite-pay", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...formData,
-          amount: 2000 // R$ 20,00 em centavos
+          amount: price,
+          productId: "wkccpro-workshop-claude-code-pro",
         }),
       });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setPixData({
-          qrCode: data.qrCode,
-          qrCodeUrl: data.qrCodeUrl,
-          paymentUrl: data.paymentUrl,
-          billingId: data.billingId
-        });
-        setPaymentStatus('success');
-        console.log('Cobrança criada:', data);
+        setPaymentData(data);
+        setPaymentStatus("success");
 
-        // Trigger basic confetti when payment is successful
-        setTimeout(() => {
-          fireConfetti({
-            particleCount: 50,
-            spread: 45,
-            origin: { y: 0.6 },
-            colors: ['#26ccff', '#a25afd', '#ff5e7e']
-          });
-        }, 300);
-      } else {
-        setPaymentStatus('error');
-        // Check if error might be related to invalid CPF
-        const errorMsg = data.error || '';
-        if (errorMsg.toLowerCase().includes('taxid') || errorMsg.toLowerCase().includes('cpf')) {
-          setErrorMessage('Erro ao criar pagamento: Possivelmente CPF inválido. Verifique se você digitou todos os 11 dígitos corretamente.');
-        } else {
-          setErrorMessage(`${data.error || 'Erro ao processar pagamento. Tente novamente ou entre em contato com o suporte.'} ⚠️ Talvez você tenha inserido um CPF inválido - verifique os 11 dígitos.`);
+        // Redirecionar para checkout ou abrir deeplink
+        if (data.checkoutUrl) {
+          window.open(data.checkoutUrl, "_blank");
+        } else if (data.deeplink) {
+          // Tentar abrir o app Infinite Pay
+          window.location.href = data.deeplink;
+
+          // Fallback para loja em nova aba
+          setTimeout(() => {
+            window.open(
+              "https://loja.infinitepay.io/agentikai/wkccpro-workshop-claude-code-pro",
+              "_blank",
+            );
+          }, 2000);
         }
-        console.error('Erro pagamento:', data);
+      } else {
+        setPaymentStatus("error");
       }
     } catch (error) {
-      console.error('Erro ao processar pagamento:', error);
-      setPaymentStatus('error');
-      setErrorMessage(`Erro ao conectar com o servidor. Tente novamente. ⚠️ Verifique se seu CPF está correto.`);
+      console.error("Erro ao processar pagamento:", error);
+      setPaymentStatus("error");
     } finally {
       setLoading(false);
     }
   };
 
+  const copyPixCode = async () => {
+    if (paymentData?.qrCode) {
+      try {
+        await navigator.clipboard.writeText(paymentData.qrCode);
+        alert("Código PIX copiado!");
+      } catch (error) {
+        console.error("Erro ao copiar:", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    // Ajusta parcelas com base no método de pagamento
+    if (formData.paymentMethod === "pix") {
+      setFormData((prev) => ({ ...prev, installments: 1 }));
+    }
+  }, [formData.paymentMethod]);
+
   return (
-    <div className="min-h-screen p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       {/* Header */}
-      <header className="max-w-7xl mx-auto mb-12 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="bg-claude-dark border border-claude-border p-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-             <Terminal className="w-8 h-8 text-claude-accent" />
+      <header className="bg-white border-b-4 border-black shadow-[4px_4px_0px_0px_#000]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-purple-200 p-3 border-3 border-black rounded-sm shadow-[4px_4px_0px_0px_#000]">
+                <Sparkles className="w-8 h-8 text-purple-600" strokeWidth={3} />
+              </div>
+              <h1 className="text-3xl font-black tracking-tight">athena.agi</h1>
+            </div>
+            <div className="hidden sm:block">
+              <div className="bg-gradient-to-r from-purple-200 to-pink-200 px-4 py-2 border-3 border-black rounded-sm font-bold shadow-[2px_2px_0px_0px_#000]">
+                WORKSHOP PRO
+              </div>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-vt323 text-claude-dark">
-              WORKSHOP_CLAUDE_CODE
-            </h1>
-            <p className="text-sm font-mono text-claude-dark/70">por Agentik AI</p>
-          </div>
-        </div>
-        <div className="hidden sm:block">
-             <div className="bg-claude-dark text-claude-text border border-claude-border px-4 py-2 font-vt323 text-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                MODO_WORKSHOP: ATIVO
-             </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12">
-          {/* Left Column */}
-          <div className="space-y-12">
-             <TerminalCard title="welcome.sh">
-                <div className="flex items-center gap-3 mb-6">
-                    <span className="bg-claude-accent text-claude-dark px-2 py-1 font-bold font-mono text-xs">VAGAS_LIMITADAS</span>
-                    <span className="text-claude-accent font-vt323 text-xl animate-pulse">🔥 oferta_expira_em_breve</span>
-                </div>
-
-                <h2 className="text-5xl md:text-6xl font-vt323 text-claude-text mb-6 leading-none">
-                   WORKSHOP <br/>
-                   <span className="text-claude-accent">CLAUDE_CODE_PRO</span>
-                </h2>
-
-                <p className="text-xl font-mono text-claude-dim mb-8 border-l-2 border-claude-accent pl-4">
-                   Stack IA-first: Claude Code, Router, GLM e MCP — 3h Ao Vivo
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Left Column - Event Info */}
+          <div className="space-y-6">
+            {/* Hero Section */}
+            <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_#000] p-8 rounded-md transform hover:scale-[1.02] transition-transform">
+              <div className="inline-block bg-gradient-to-r from-purple-300 to-pink-300 px-4 py-2 border-2 border-black rounded-sm font-black text-sm mb-4 shadow-[2px_2px_0px_0px_#000]">
+                🔥 OFERTA LIMITADA
+              </div>
+              <h2 className="text-4xl sm:text-5xl font-black mb-4 leading-tight bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Workshop Claude Code Pro
+              </h2>
+              <p className="text-xl font-bold mb-6 text-gray-700">
+                Domine as ferramentas de IA mais poderosas do mercado
+              </p>
+              <div className="bg-gradient-to-r from-blue-100 to-purple-100 border-3 border-black p-6 rounded-sm shadow-[4px_4px_0px_0px_#000]">
+                <p className="text-lg leading-relaxed font-medium">
+                  Transforme sua produtividade com{" "}
+                  <span className="font-black text-purple-600">
+                    Claude Code
+                  </span>{" "}
+                  e <span className="font-black text-pink-600">Gemini CLI</span>
+                  . Hands-on, networking e techniques avançadas!
                 </p>
+              </div>
+            </div>
 
-                <div className="bg-[#1a1a1a] border border-claude-border p-6 font-mono text-sm text-claude-dim">
-                   <p className="mb-4">
-                      <span className="text-claude-accent mr-2">$</span>
-                      <span className="text-claude-text">./run_workshop --focus=productivity</span>
-                   </p>
-                   <p>
-                      Carregando módulo... <span className="text-claude-accent">Claude Code Router</span><br/>
-                      Carregando módulo... <span className="text-claude-accent">GLM</span><br/>
-                      Carregando módulo... <span className="text-claude-accent">Ecossistema MCP</span><br/>
-                      <br/>
-                      <span className="text-[#27C93F]">{`>>`} PRONTO PARA ACELERAR O DESENVOLVIMENTO</span>
-                   </p>
+            {/* Event Details */}
+            <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_#000] p-8 rounded-md">
+              <h3 className="text-2xl font-black mb-6 flex items-center gap-2">
+                <Calendar className="w-6 h-6" strokeWidth={3} />
+                Detalhes do Workshop
+              </h3>
+              <div className="space-y-4">
+                <div className="flex items-start gap-4 p-4 bg-pink-100 border-2 border-black rounded-sm hover:translate-x-1 transition-transform">
+                  <Calendar
+                    className="w-6 h-6 flex-shrink-0"
+                    strokeWidth={2.5}
+                  />
+                  <div>
+                    <p className="font-black">Data</p>
+                    <p className="font-medium">Em breve - Inscreva-se!</p>
+                  </div>
                 </div>
-             </TerminalCard>
-
-             <TerminalCard title="detalhes_evento.json">
-                <h3 className="text-2xl font-vt323 text-claude-text mb-6 flex items-center gap-2">
-                   <Calendar className="w-6 h-6 text-claude-accent" />
-                   DETALHES_DO_EVENTO
-                </h3>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                   {[
-                      { icon: Calendar, label: 'DATA', value: 'EM_BREVE' },
-                      { icon: Clock, label: 'DURAÇÃO', value: '3H_AO_VIVO' },
-                      { icon: MapPin, label: 'LOCAL', value: 'ONLINE_MEET' },
-                      { icon: Users, label: 'CAPACIDADE', value: 'VAGAS_LIMITADAS' }
-                   ].map((item, i) => (
-                      <div key={i} className="bg-[#1a1a1a] border border-claude-border p-4 hover:border-claude-accent transition-colors group">
-                         <div className="flex items-center gap-3 mb-2">
-                            <item.icon className="w-5 h-5 text-claude-dim group-hover:text-claude-accent transition-colors" />
-                            <span className="font-mono text-xs text-claude-dim">{item.label}</span>
-                         </div>
-                         <p className="font-vt323 text-xl text-claude-text">{item.value}</p>
-                      </div>
-                   ))}
+                <div className="flex items-start gap-4 p-4 bg-green-100 border-2 border-black rounded-sm hover:translate-x-1 transition-transform">
+                  <Clock className="w-6 h-6 flex-shrink-0" strokeWidth={2.5} />
+                  <div>
+                    <p className="font-black">Duração</p>
+                    <p className="font-medium">3 horas de conteúdo intensivo</p>
+                  </div>
                 </div>
-             </TerminalCard>
-
-             <TerminalCard title="organizer.txt">
-                 <div className="flex flex-col md:flex-row items-center gap-8">
-                    <div className="relative w-32 h-32 shrink-0">
-                      <img
-                        src="/profile-photo.png"
-                        alt="Caio Mioto"
-                        className="w-full h-full border-2 border-claude-accent shadow-[4px_4px_0px_0px_#FF5E3A] object-contain bg-[#1a1a1a]"
-                      />
-                   </div>
-                    <div className="text-center md:text-left">
-                       <h4 className="text-3xl font-vt323 text-claude-text mb-2">CAIO MIOTO</h4>
-                       <p className="font-mono text-claude-accent text-sm mb-4">CEO @ AGENTIK_AI</p>
-                       <p className="font-mono text-sm text-claude-dim leading-relaxed">
-                          "Especialista em Automação & IA para Marketing e Vendas. Vou ser seu guia e mostrar como eu uso o Claude Code para construir sites igual esse que você está agora."
-                       </p>
-                    </div>
-                 </div>
-             </TerminalCard>
-
-             <TerminalCard title="curriculum.tree">
-                <h3 className="text-2xl font-vt323 text-claude-text mb-8">ESTRUTURA_DO_WORKSHOP</h3>
-                <div className="min-h-[350px]">
-                   <WorkshopCards />
+                <div className="flex items-start gap-4 p-4 bg-blue-100 border-2 border-black rounded-sm hover:translate-x-1 transition-transform">
+                  <MapPin className="w-6 h-6 flex-shrink-0" strokeWidth={2.5} />
+                  <div>
+                    <p className="font-black">Formato</p>
+                    <p className="font-medium">Online - Call ao vivo</p>
+                  </div>
                 </div>
-             </TerminalCard>
+                <div className="flex items-start gap-4 p-4 bg-purple-100 border-2 border-black rounded-sm hover:translate-x-1 transition-transform">
+                  <Users className="w-6 h-6 flex-shrink-0" strokeWidth={2.5} />
+                  <div>
+                    <p className="font-black">Vagas</p>
+                    <p className="font-medium">
+                      Grupo limitado para melhor aprendizado
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* What You'll Learn */}
+            <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_#000] p-8 rounded-md">
+              <h3 className="text-2xl font-black mb-6 flex items-center gap-2">
+                <Code className="w-6 h-6" strokeWidth={3} />O Que Você Vai
+                Dominar
+              </h3>
+              <ul className="space-y-3">
+                {[
+                  "Claude Code CLI - Nível profissional",
+                  "Gemini CLI - Produtividade máxima",
+                  "Workflows avançados e automação",
+                  "Técnicas de prompt engineering",
+                  "Networking com especialistas",
+                  "Projetos práticos e cases reais",
+                ].map((item, index) => (
+                  <li
+                    key={index}
+                    className="flex items-start gap-3 p-3 bg-gradient-to-r from-gray-50 to-purple-50 border-2 border-black rounded-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-[2px_2px_0px_0px_#000] transition-all"
+                  >
+                    <CheckCircle
+                      className="w-5 h-5 flex-shrink-0 text-green-600"
+                      strokeWidth={3}
+                    />
+                    <span className="font-bold">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          {/* Right Column */}
+          {/* Right Column - Checkout Form */}
           <div className="lg:sticky lg:top-8 h-fit">
-             <TerminalCard title="payment_gateway.exe" className="border-claude-accent">
-                <div className="text-center mb-8 border-b border-claude-border pb-8">
-                   <div className="inline-block bg-claude-accent text-claude-dark px-4 py-1 font-vt323 text-xl mb-4">
-                      OFERTA_UNICA
-                   </div>
-                   <div className="flex items-baseline justify-center gap-1 mb-2">
-                      <span className="text-2xl font-mono text-claude-dim">R$</span>
-                      <span className="text-7xl font-vt323 text-claude-text">20</span>
-                   </div>
-                   <p className="font-mono text-xs text-claude-dim">METODO_PAGAMENTO: PIX</p>
+            <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_#000] p-8 rounded-md">
+              <div className="text-center mb-6">
+                <div className="inline-block bg-gradient-to-r from-green-200 to-blue-200 px-6 py-3 border-3 border-black rounded-sm shadow-[4px_4px_0px_0px_#000] mb-4">
+                  <p className="text-sm font-black text-gray-600">
+                    INVESTIMENTO
+                  </p>
+                  <p className="text-5xl font-black">R$ 97</p>
+                  <p className="text-xs font-medium text-gray-500 line-through">
+                    R$ 197
+                  </p>
                 </div>
+                <div className="bg-red-100 px-3 py-1 border-2 border-black rounded-sm inline-block">
+                  <p className="text-sm font-black text-red-600">
+                    50% OFF - Tempo limitado
+                  </p>
+                </div>
+              </div>
 
-                {paymentStatus === 'idle' && !showForm && (
-                   <div className="text-center">
+              {paymentStatus === "idle" && (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="block font-black mb-2 text-sm">
+                      Nome Completo
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      required
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border-3 border-black rounded-sm font-medium focus:outline-none focus:shadow-[4px_4px_0px_0px_#000] transition-all"
+                      placeholder="Seu nome completo"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-black mb-2 text-sm">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      required
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border-3 border-black rounded-sm font-medium focus:outline-none focus:shadow-[4px_4px_0px_0px_#000] transition-all"
+                      placeholder="seu@email.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-black mb-2 text-sm">
+                      Telefone
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      required
+                      value={formData.phone}
+                      onChange={(e) => {
+                        const formatted = formatPhone(e.target.value);
+                        setFormData((prev) => ({ ...prev, phone: formatted }));
+                      }}
+                      className="w-full px-4 py-3 border-3 border-black rounded-sm font-medium focus:outline-none focus:shadow-[4px_4px_0px_0px_#000] transition-all"
+                      placeholder="(11) 99999-9999"
+                      maxLength={15}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-black mb-2 text-sm">CPF</label>
+                    <input
+                      type="text"
+                      name="cpf"
+                      required
+                      value={formData.cpf}
+                      onChange={(e) => {
+                        const formatted = formatCPF(e.target.value);
+                        setFormData((prev) => ({ ...prev, cpf: formatted }));
+                      }}
+                      className="w-full px-4 py-3 border-3 border-black rounded-sm font-medium focus:outline-none focus:shadow-[4px_4px_0px_0px_#000] transition-all"
+                      placeholder="000.000.000-00"
+                      maxLength={14}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-black mb-2 text-sm">
+                      Método de Pagamento
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
                       <button
-                        onClick={() => setShowForm(true)}
-                        className="w-full bg-claude-accent text-claude-dark font-vt323 text-2xl py-4 border-2 border-claude-text shadow-[4px_4px_0px_0px_#F0F0F0] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_#F0F0F0] transition-all active:translate-y-[4px] active:translate-x-[4px] active:shadow-none"
+                        type="button"
+                        name="paymentMethod"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            paymentMethod: "credit",
+                          }))
+                        }
+                        className={`p-3 border-3 border-black rounded-sm font-bold transition-all ${
+                          formData.paymentMethod === "credit"
+                            ? "bg-purple-200 shadow-[2px_2px_0px_0px_#000] translate-x-[1px] translate-y-[1px]"
+                            : "bg-white hover:bg-gray-50"
+                        }`}
                       >
-                        [ GARANTIR_VAGA ]
+                        Crédito
                       </button>
-                      <p className="font-mono text-xs text-claude-dim mt-4">
-                         {`>`} Conexão segura estabelecida...
-                      </p>
-                   </div>
-                )}
+                      <button
+                        type="button"
+                        name="paymentMethod"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            paymentMethod: "debit",
+                          }))
+                        }
+                        className={`p-3 border-3 border-black rounded-sm font-bold transition-all ${
+                          formData.paymentMethod === "debit"
+                            ? "bg-purple-200 shadow-[2px_2px_0px_0px_#000] translate-x-[1px] translate-y-[1px]"
+                            : "bg-white hover:bg-gray-50"
+                        }`}
+                      >
+                        Débito
+                      </button>
+                      <button
+                        type="button"
+                        name="paymentMethod"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            paymentMethod: "pix",
+                          }))
+                        }
+                        className={`p-3 border-3 border-black rounded-sm font-bold transition-all ${
+                          formData.paymentMethod === "pix"
+                            ? "bg-purple-200 shadow-[2px_2px_0px_0px_#000] translate-x-[1px] translate-y-[1px]"
+                            : "bg-white hover:bg-gray-50"
+                        }`}
+                      >
+                        PIX
+                      </button>
+                    </div>
+                  </div>
 
-                {paymentStatus === 'idle' && showForm && (
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    {[
-                      { id: 'name', label: 'NOME' },
-                      { id: 'email', label: 'EMAIL' },
-                      { id: 'phone', label: 'CELULAR' },
-                      { id: 'cpf', label: 'CPF' }
-                    ].map((field) => (
-                      <div key={field.id}>
-                        <label className="block font-mono text-xs text-claude-accent mb-1 uppercase">
-                          {field.label}
-                        </label>
-                        <input
-                          type={field.id === 'email' ? 'email' : field.id === 'phone' ? 'tel' : 'text'}
-                          name={field.id}
-                          required
-                          value={(formData as any)[field.id]}
-                          onChange={handleInputChange}
-                          className={`w-full bg-[#1a1a1a] border font-mono px-4 py-3 focus:outline-none transition-colors ${
-                            fieldErrors[field.id as keyof typeof fieldErrors]
-                              ? 'border-red-500 text-red-400'
-                              : 'border-claude-border text-claude-text focus:border-claude-accent'
-                          }`}
-                          placeholder={`Digite ${field.label}...`}
+                  {formData.paymentMethod !== "pix" && (
+                    <div>
+                      <label className="block font-black mb-2 text-sm">
+                        Parcelas
+                      </label>
+                      <select
+                        name="installments"
+                        value={formData.installments}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border-3 border-black rounded-sm font-medium focus:outline-none focus:shadow-[4px_4px_0px_0px_#000] transition-all"
+                      >
+                        <option value={1}>
+                          1x R$ {price.toFixed(2)} sem juros
+                        </option>
+                        <option value={2}>
+                          2x R$ {(price / 2).toFixed(2)} sem juros
+                        </option>
+                        <option value={3}>
+                          3x R$ {(price / 3).toFixed(2)} sem juros
+                        </option>
+                      </select>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 border-4 border-black rounded-sm py-4 font-black text-lg shadow-[6px_6px_0px_0px_#000] hover:shadow-[4px_4px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2
+                          className="w-5 h-5 animate-spin"
+                          strokeWidth={3}
                         />
-                        {fieldErrors[field.id as keyof typeof fieldErrors] && (
-                          <p className="text-red-500 text-xs font-mono mt-1">
-                            ⚠️ {fieldErrors[field.id as keyof typeof fieldErrors]}
-                          </p>
-                        )}
+                        Processando...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="w-5 h-5" strokeWidth={3} />
+                        GARANTIR MINHA VAGA AGORA
+                      </>
+                    )}
+                  </button>
+
+                  <div className="flex items-center justify-center gap-2 text-sm font-bold text-gray-600">
+                    <Smartphone className="w-4 h-4" strokeWidth={3} />
+                    <span>Pagamento seguro via Infinite Pay</span>
+                  </div>
+                </form>
+              )}
+
+              {paymentStatus === "success" && paymentData && (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <div className="inline-block bg-green-200 p-4 border-3 border-black rounded-full shadow-[4px_4px_0px_0px_#000] mb-4">
+                      <CheckCircle className="w-12 h-12" strokeWidth={3} />
+                    </div>
+                    <h3 className="text-2xl font-black mb-2">
+                      Pagamento Iniciado!
+                    </h3>
+                    <p className="font-bold text-gray-600">
+                      {paymentData.checkoutUrl
+                        ? "Redirecionando para checkout..."
+                        : paymentData.deeplink
+                          ? "Abrindo Infinite Pay..."
+                          : "QR Code PIX gerado!"}
+                    </p>
+                  </div>
+
+                  {paymentData.qrCode && (
+                    <div className="bg-blue-100 border-3 border-black p-6 rounded-sm shadow-[4px_4px_0px_0px_#000]">
+                      <div className="bg-white p-4 border-2 border-black rounded-sm mb-4 flex justify-center">
+                        <QrCode className="w-32 h-32 text-black" />
                       </div>
-                    ))}
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full mt-6 bg-claude-accent text-claude-dark font-vt323 text-2xl py-4 border-2 border-claude-text shadow-[4px_4px_0px_0px_#F0F0F0] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_#F0F0F0] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {loading ? (
-                        <>
-                           <Loader2 className="w-5 h-5 animate-spin" />
-                           PROCESSANDO...
-                        </>
-                      ) : (
-                        '[ CONFIRMAR_TRANSACAO ]'
-                      )}
-                    </button>
-                  </form>
-                )}
-
-                {paymentStatus === 'success' && pixData && (
-                   <div className="text-center space-y-6">
-                      <div className="bg-[#27C93F]/20 border border-[#27C93F] p-4">
-                         <p className="font-vt323 text-2xl text-[#27C93F]">TRANSACTION_CREATED</p>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="font-black text-sm mb-2">Código PIX:</p>
+                          <div className="bg-white p-3 border-2 border-black rounded-sm font-mono text-xs break-all">
+                            {paymentData.qrCode}
+                          </div>
+                        </div>
+                        <button
+                          onClick={copyPixCode}
+                          className="w-full bg-yellow-300 hover:bg-yellow-400 border-3 border-black rounded-sm py-3 font-black shadow-[4px_4px_0px_0px_#000] hover:shadow-[2px_2px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                        >
+                          COPIAR CÓDIGO PIX
+                        </button>
                       </div>
+                    </div>
+                  )}
 
-                      {pixData.qrCodeUrl ? (
-                        <div className="bg-white p-4 inline-block mx-auto border-4 border-white">
-                           <img src={pixData.qrCodeUrl} alt="QR Code" className="w-48 h-48" />
-                        </div>
-                      ) : (
-                        <div className="w-full space-y-4">
-                           <p className="font-mono text-sm text-claude-dim mb-2">Finalize o pagamento abaixo:</p>
-
-                           {/* Iframe for integrated payment */}
-                           {pixData.paymentUrl && (
-                             <div className="w-full h-[600px] border-2 border-claude-dim bg-white">
-                               <iframe
-                                 src={pixData.paymentUrl}
-                                 className="w-full h-full"
-                                 title="Pagamento PIX"
-                               />
-                             </div>
-                           )}
-
-                           {/* Fallback button */}
-                           <a
-                             href={pixData.paymentUrl}
-                             className="inline-block bg-claude-accent text-claude-dark font-vt323 text-xl py-2 px-6 border-2 border-claude-text shadow-[4px_4px_0px_0px_#F0F0F0] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_#F0F0F0] transition-all"
-                           >
-                             [ ABRIR_EM_NOVA_ABA ]
-                           </a>
-                        </div>
-                      )}
-
-                      {pixData.qrCode && (
-                        <div className="space-y-2">
-                           <p className="font-mono text-xs text-claude-dim">PIX_COPY_PASTE:</p>
-                           <div className="bg-[#1a1a1a] p-3 border border-claude-border font-mono text-xs text-claude-dim break-all">
-                              {pixData.qrCode}
-                           </div>
-                           <button
-                              onClick={() => navigator.clipboard.writeText(pixData.qrCode!)}
-                              className="w-full border border-claude-dim text-claude-dim font-mono text-xs py-2 hover:bg-claude-dim hover:text-claude-dark transition-colors"
-                           >
-                              [ COPY_CODE ]
-                           </button>
-                        </div>
-                      )}
-                   </div>
-                )}
-
-                {paymentStatus === 'error' && (
-                   <div className="bg-red-500/20 border border-red-500 p-6 text-center">
-                      <p className="font-vt323 text-xl text-red-500 mb-4">ERROR: TRANSACTION_FAILED</p>
-                      {errorMessage && (
-                        <p className="text-red-400 text-sm mb-4 font-mono">{errorMessage}</p>
-                      )}
-                      <button
-                        onClick={() => {
-                          setPaymentStatus('idle');
-                          setErrorMessage('');
-                        }}
-                        className="text-red-500 font-mono text-xs underline decoration-red-500"
-                      >
-                        {`>`} RETRY_CONNECTION
-                      </button>
-                   </div>
-                )}
-
-                <div className="mt-8 pt-6 border-t border-claude-border flex justify-center gap-6">
-                   <div className="flex items-center gap-2 text-claude-dim">
-                      <CheckCircle className="w-4 h-4" />
-                      <span className="font-mono text-xs">SSL_SECURE</span>
-                   </div>
-                   <div className="flex items-center gap-2 text-claude-dim">
-                      <Terminal className="w-4 h-4" />
-                      <span className="font-mono text-xs">INSTANT_ACCESS</span>
-                   </div>
+                  <div className="bg-purple-100 border-2 border-black p-4 rounded-sm">
+                    <p className="text-sm font-bold text-center">
+                      🎉 Após a confirmação, você receberá todos os detalhes por
+                      email
+                    </p>
+                  </div>
                 </div>
-             </TerminalCard>
+              )}
+
+              {paymentStatus === "error" && (
+                <div className="text-center space-y-4">
+                  <div className="bg-red-200 border-3 border-black p-6 rounded-sm shadow-[4px_4px_0px_0px_#000]">
+                    <p className="font-black text-lg mb-2">Erro ao processar</p>
+                    <p className="font-medium">Por favor, tente novamente</p>
+                  </div>
+                  <button
+                    onClick={() => setPaymentStatus("idle")}
+                    className="bg-blue-300 hover:bg-blue-400 border-3 border-black rounded-sm px-6 py-3 font-black shadow-[4px_4px_0px_0px_#000] hover:shadow-[2px_2px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                  >
+                    TENTAR NOVAMENTE
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Trust Badges */}
+            <div className="mt-6 bg-white border-3 border-black shadow-[6px_6px_0px_0px_#000] p-6 rounded-sm">
+              <div className="flex items-center justify-center gap-4 text-sm font-bold text-gray-600">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4" strokeWidth={3} />
+                  <span>Pagamento 100% Seguro</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Terminal className="w-4 h-4" strokeWidth={3} />
+                  <span>Acesso Imediato</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" strokeWidth={3} />
+                  <span>Suporte Especial</span>
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
       </main>
 
-      <footer className="max-w-7xl mx-auto mt-20 pt-8 border-t border-claude-dark/20 text-center pb-8">
-         <p className="font-mono text-xs text-claude-dark/60">
-            © 2025 FERRAMENTAS_CLI_WORKSHOP <br/>
-            POWERED_BY: <span className="font-bold">Agentik AI</span>
-         </p>
+      {/* Footer */}
+      <footer className="bg-white border-t-4 border-black mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <p className="font-bold text-gray-600">
+              © 2025 athena.agi - Workshop Claude Code Pro
+            </p>
+            <p className="text-sm font-medium text-gray-500 mt-2">
+              Dúvidas? Entre em contato após a compra
+            </p>
+          </div>
+        </div>
       </footer>
     </div>
   );
