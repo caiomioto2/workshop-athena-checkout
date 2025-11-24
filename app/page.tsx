@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import WorkshopCards from "../components/WorkshopCards";
 import TerminalCard from "../components/TerminalCard";
+import ComoFunciona from "../components/ComoFunciona";
 import { fireConfetti } from "@/components/ui/confetti";
 
 export default function WorkshopCheckout() {
@@ -120,7 +121,7 @@ export default function WorkshopCheckout() {
 
     if (name === "cpf") {
       if (value && !validateCPF(value)) {
-        newFieldErrors.cpf = "";
+        newFieldErrors.cpf = "CPF inválido";
       } else {
         delete newFieldErrors.cpf;
       }
@@ -136,7 +137,9 @@ export default function WorkshopCheckout() {
     // Validate CPF first
     if (!validateCPF(formData.cpf)) {
       setPaymentStatus("error");
-      setErrorMessage("Por favor, preencha todos os campos.");
+      setErrorMessage(
+        "CPF inválido. Verifique se você digitou todos os 11 dígitos corretamente.",
+      );
       setLoading(false);
       return;
     }
@@ -183,7 +186,7 @@ export default function WorkshopCheckout() {
               description:
                 "Workshop de Claude Code & Gemini CLI - Networking & Hands-on",
               quantity: 1,
-              price: 500, // R$ 5,00 em centavos (para teste)
+              price: 2000, // R$ 20,00 em centavos
             },
           ],
           order_nsu: `ATHENA-${Date.now()}`,
@@ -372,6 +375,10 @@ export default function WorkshopCheckout() {
               </div>
             </div>
           </TerminalCard>
+
+          <div className="mt-8 mb-8">
+            <ComoFunciona />
+          </div>
 
           <TerminalCard title="curriculum.tree">
             <h3 className="text-2xl font-vt323 text-claude-text mb-8">
