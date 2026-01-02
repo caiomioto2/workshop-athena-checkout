@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
-import { CheckCircle, Code, Bot, Terminal, Cpu, FileJson, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CheckCircle, Code, Bot, Terminal, Cpu, FileJson, Users, ChevronLeft, ChevronRight, Zap, DollarSign } from 'lucide-react';
 
 interface Topic {
   id: number;
@@ -10,69 +10,81 @@ interface Topic {
   title: string;
   items: string[];
   tagline: string;
-  theme: 'claude' | 'router' | 'mcp' | 'spec' | 'network';
+  theme: 'claude' | 'router' | 'mcp' | 'spec' | 'demo' | 'economy';
 }
 
 const topics: Topic[] = [
   {
     id: 1,
-    duration: '30min',
-    title: 'TOPICO_01: CLAUDE_CODE',
+    duration: 'MODULO_01',
+    title: 'CLAUDE_CODE',
     items: [
-      '> Comandos CLI & Arquivos',
-      '> Refatoração & Debugging',
-      '> Workflows Simples'
+      '> Geração & Refatoração',
+      '> Debugging Assistido',
+      '> Execução de Comandos'
     ],
-    tagline: 'INICIANDO_SISTEMA...',
+    tagline: 'FLUXO_COMPLETO_TERMINAL...',
     theme: 'claude'
   },
   {
     id: 2,
-    duration: '25min',
-    title: 'TOPICO_02: ROUTER + GLM',
+    duration: 'MODULO_02',
+    title: 'ROUTER_&_MULTIMODEL',
     items: [
-      '> Pipeline Multi-Modelo',
-      '> Otimização de Custos',
-      '> Lógica de Roteamento'
+      '> Integração GLM 4.6',
+      '> Integração Gemini 3.0',
+      '> Orquestração Automática'
     ],
-    tagline: 'OTIMIZANDO_CUSTOS...',
+    tagline: 'OTIMIZANDO_PERFORMANCE...',
     theme: 'router'
   },
   {
     id: 3,
-    duration: '30min',
-    title: 'TOPICO_03: MCP_PLUGINS',
+    duration: 'MODULO_03',
+    title: 'PLUGINS_MCP',
     items: [
-      '> Skills & Ações',
-      '> Instalação via Marketplace',
-      '> Automações Práticas'
+      '> Skills & Actions',
+      '> Conexão com APIs',
+      '> Processos Internos'
     ],
-    tagline: 'CONECTANDO_PLUGINS...',
+    tagline: 'EXPANDINDO_CAPACIDADES...',
     theme: 'mcp'
   },
   {
     id: 4,
-    duration: '25min',
-    title: 'TOPICO_04: SPEC_ARCH',
+    duration: 'MODULO_04',
+    title: 'SPEC_DRIVEN_ARCH',
     items: [
-      '> Geração de Specs com IA',
-      '> Desenv. Orientado a Specs',
-      '> Coerência Estrutural'
+      '> Specs Profissionais',
+      '> Código Consistente',
+      '> Escalabilidade'
     ],
-    tagline: 'COMPILANDO_SPECS...',
+    tagline: 'GERANDO_ESTRUTURA...',
     theme: 'spec'
   },
   {
     id: 5,
-    duration: '20min',
-    title: 'TOPICO_05: NETWORKING',
+    duration: 'MODULO_05',
+    title: 'DEMOS_AO_VIVO',
     items: [
-      '> Tira-dúvidas Geral',
-      '> Troca de Experiências',
-      '> Encerramento'
+      '> API via Spec',
+      '> Automações Reais',
+      '> Pipelines Híbridos'
     ],
-    tagline: 'CONEXAO_ESTABELECIDA...',
-    theme: 'network'
+    tagline: 'BUILDING_IN_PUBLIC...',
+    theme: 'demo'
+  },
+  {
+    id: 6,
+    duration: 'MODULO_06',
+    title: 'ECONOMIA_DE_SCALE',
+    items: [
+      '> IA Massiva',
+      '> Baixo Custo',
+      '> High Throughput'
+    ],
+    tagline: 'REDUZINDO_CUSTOS...',
+    theme: 'economy'
   }
 ];
 
@@ -98,7 +110,8 @@ const Card = ({ topic, index, setTopics }: { topic: Topic; index: number; setTop
       case 'router': return <Cpu className="w-5 h-5" />;
       case 'mcp': return <Terminal className="w-5 h-5" />;
       case 'spec': return <FileJson className="w-5 h-5" />;
-      case 'network': return <Users className="w-5 h-5" />;
+      case 'demo': return <Zap className="w-5 h-5" />;
+      case 'economy': return <DollarSign className="w-5 h-5" />;
       default: return <Code className="w-5 h-5" />;
     }
   };
@@ -127,7 +140,7 @@ const Card = ({ topic, index, setTopics }: { topic: Topic; index: number; setTop
       transition={{ type: 'spring', stiffness: 260, damping: 20 }}
       className={`relative w-full cursor-grab active:cursor-grabbing`}
     >
-      <div className="bg-[#1e1e1e] border-2 border-claude-text p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.5)] h-full flex flex-col">
+      <div className="bg-[#1e1e1e] border-2 border-claude-text p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.5)] h-full flex flex-col min-h-[300px]">
         <div className="flex justify-between items-center mb-6 border-b border-dashed border-claude-dim pb-4">
            <div className="flex items-center gap-2 font-mono text-claude-accent">
               {getIcon(topic.theme)}
@@ -138,8 +151,8 @@ const Card = ({ topic, index, setTopics }: { topic: Topic; index: number; setTop
            </div>
         </div>
 
-        <h3 className="font-vt323 text-2xl text-claude-text mb-4 uppercase tracking-wide">
-          {topic.title}
+        <h3 className="font-vt323 text-2xl text-claude-text mb-4 uppercase tracking-wide leading-tight">
+          {topic.title.replace(/_/g, ' ')}
         </h3>
 
         <ul className="space-y-3 font-mono text-sm text-claude-text mb-6">
