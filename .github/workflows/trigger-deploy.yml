@@ -3,7 +3,7 @@ name: Trigger Vercel Deploy
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 9 * * *' # 09:00 UTC = 06:00 BRT
+    - cron: '05 21 * * *' # 21:05 UTC = 18:05 BRT
 
 jobs:
   trigger-deploy:
