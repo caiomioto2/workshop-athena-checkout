@@ -1,266 +1,68 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import {
-  CheckCircle,
-  ArrowLeft,
-  Sparkles,
-  Clock,
-  Mail,
-  Calendar,
-  MapPin,
-} from "lucide-react";
-import Link from "next/link";
-import {
-  fireConfetti,
-  fireworksConfetti,
-  Confetti,
-} from "@/components/ui/confetti";
-import ConfettiExplosion from "react-confetti-explosion";
+import Image from "next/image";
+import { CheckCircle, ArrowRight } from "lucide-react";
 
-export default function SuccessPage() {
-  const [orderInfo, setOrderInfo] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [isExploding, setIsExploding] = useState(false);
-  const confettiRef = useRef<any>(null);
-
-  useEffect(() => {
-    // Trigger multiple confetti effects
-    setIsExploding(true);
-
-    // Delayed confetti for more celebration
-    setTimeout(() => {
-      fireConfetti({
-        particleCount: 200,
-        spread: 100,
-        origin: { y: 0.6 },
-      });
-    }, 500);
-
-    setTimeout(() => {
-      fireworksConfetti();
-    }, 1000);
-
-    // Get URL parameters to show order information
-    const urlParams = new URLSearchParams(window.location.search);
-    const billingId = urlParams.get("billing_id");
-    const paymentId = urlParams.get("payment_id");
-
-    // Infinite Pay return parameters
-    const orderNsu = urlParams.get("order_nsu") || urlParams.get("order_id");
-    const receiptUrl = urlParams.get("receipt_url");
-    const transactionNsu = urlParams.get("transaction_nsu");
-    const slug = urlParams.get("slug");
-    const captureMethod = urlParams.get("capture_method");
-
-    // Log Infinite Pay parameters for processing
-    if (orderNsu || transactionNsu) {
-      const paymentData = {
-        order_nsu: orderNsu,
-        receipt_url: receiptUrl,
-        transaction_nsu: transactionNsu,
-        slug: slug,
-        capture_method: captureMethod,
-        timestamp: new Date().toISOString(),
-      };
-
-      console.log("📥 Infinite Pay return parameters:", paymentData);
-
-      // Optional: Verify payment status if parameters are available
-      if (transactionNsu && slug && orderNsu) {
-        verifyPayment(orderNsu, transactionNsu, slug);
-      }
-    }
-
-    setOrderInfo({
-      billingId,
-      paymentId,
-      orderNumber: `WSK-${Date.now().toString().slice(-6)}`,
-      infinitePay: {
-        orderNsu,
-        receiptUrl,
-        transactionNsu,
-        slug,
-        captureMethod,
-      },
-    });
-    setLoading(false);
-  }, []);
-
-  // Function to verify payment status with Infinite Pay
-  const verifyPayment = async (
-    orderNsu: string,
-    transactionNsu: string,
-    slug: string,
-  ) => {
-    try {
-      const response = await fetch("/api/infinite-pay/verify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          handle: "agentikai",
-          order_nsu: orderNsu,
-          transaction_nsu: transactionNsu,
-          slug: slug,
-        }),
-      });
-
-      const verificationResult = await response.json();
-
-      console.log("✅ Payment verification result:", verificationResult);
-
-      if (verificationResult.success && verificationResult.paid) {
-        console.log("💳 Payment confirmed:", {
-          amount: verificationResult.amount
-            ? verificationResult.amount / 100
-            : 0,
-          method: verificationResult.capture_method,
-          installments: verificationResult.installments,
-        });
-
-        // TODO: Trigger post-payment actions
-        // - Send confirmation email
-        // - Grant access to workshop
-        // - Update customer records
-      } else {
-        console.log("⏳ Payment still processing or pending");
-      }
-    } catch (error) {
-      console.error("❌ Error verifying payment:", error);
-    }
-  };
+export default function Success() {
+  const whatsappUrl = process.env.NEXT_PUBLIC_WHATSAPP_GROUP_URL || "#";
 
   return (
-    <>
-      {/* Confetti Explosion on load */}
-      {isExploding && (
-        <div className="fixed inset-0 pointer-events-none z-50">
-          <ConfettiExplosion
-            particleCount={100}
-            width={2000}
-            height={1600}
-            colors={[
-              "#26ccff",
-              "#a25afd",
-              "#ff5e7e",
-              "#88ff5a",
-              "#fcff42",
-              "#ffa62d",
-              "#ff36ff",
-            ]}
+    <div className="min-h-screen bg-[#050505] text-gemini-text font-sans selection:bg-gemini-accent selection:text-black flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <div className="fixed inset-0 bg-[linear-gradient(rgba(18,18,18,0)_1px,transparent_1px),linear-gradient(90deg,rgba(18,18,18,0)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] pointer-events-none" />
+
+      {/* Decorative Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-green-500/10 rounded-full blur-[100px] -z-10" />
+
+      <main className="max-w-xl w-full bg-[#0c0c0c] border border-gemini-border rounded-2xl p-8 md:p-12 text-center shadow-2xl relative z-10 animate-in fade-in zoom-in duration-500 space-y-8">
+
+        <div className="flex justify-center mb-6">
+          <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center border border-green-500/20 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
+            <CheckCircle className="w-10 h-10 text-green-500" />
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white leading-tight font-vt323">
+            PAGAMENTO CONFIRMADO!
+          </h1>
+          <p className="text-gemini-dim font-mono text-sm md:text-base leading-relaxed">
+            Sua vaga no Workshop Nanobanana Core está garantida. Agora, o próximo passo é entrar no nosso grupo exclusivo.
+          </p>
+        </div>
+
+        <div className="pt-6 border-t border-dashed border-gemini-dim/30">
+          <p className="text-xs font-mono text-gemini-accent mb-4 uppercase tracking-widest">
+            Próximo Passo Obrigatório
+          </p>
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-black font-bold py-4 rounded-xl text-lg transition-all active:scale-95 font-mono flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(37,211,102,0.3)] hover:shadow-[0_0_30px_rgba(37,211,102,0.5)]"
+          >
+            <span>[ ENTRAR NO GRUPO VIP ]</span>
+            <ArrowRight className="w-5 h-5" />
+          </a>
+          <p className="mt-4 text-[10px] text-gemini-dim font-mono opacity-60">
+            * Avisos e links das aulas serão enviados por lá.
+          </p>
+        </div>
+      </main>
+
+      <footer className="mt-12 text-center space-y-4 relative z-10">
+        <div className="flex items-center justify-center gap-2 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+          <Image
+            src="/agentik-logo-new.png"
+            alt="Agentik AI"
+            width={24}
+            height={24}
+            className="object-contain"
           />
+          <span className="text-[10px] font-mono text-gemini-text tracking-wider">
+            POWERED BY AGENTIK
+          </span>
         </div>
-      )}
-
-      <div className="min-h-screen bg-black flex items-center justify-center p-4">
-        <div className="max-w-md w-full">
-          {/* Main Card */}
-          <div className="bg-black border-4 border-white shadow-[12px_12px_0px_0px_rgba(255,255,255,1)] rounded-none p-8 relative overflow-hidden">
-            {/* Success Icon with Animation */}
-            <div className="flex justify-center mb-6 relative z-10">
-              <div className="relative">
-                <div className="absolute inset-0 bg-green-200 rounded-full animate-ping"></div>
-                <div className="absolute inset-0 bg-green-100 rounded-full animate-pulse"></div>
-                <div className="relative bg-gradient-to-br from-green-100 to-green-200 border-4 border-black rounded-full p-4 animate-bounce">
-                  <CheckCircle className="w-12 h-12 text-green-600" />
-                </div>
-              </div>
-            </div>
-
-            {/* Title with Emoji */}
-            <h1 className="text-4xl font-black text-center mb-2 relative z-10">
-              Uhu! <span className="text-green-600">Aprovado!</span> 🎉
-            </h1>
-
-            <p className="text-gray-300 text-center mb-6 font-medium relative z-10">
-              Sua inscrição no Workshop Claude Code Pro está confirmada!
-            </p>
-
-            {/* Order Information */}
-            {!loading && orderInfo && (
-              <div className="bg-gradient-to-r from-gray-800 to-gray-900 border-4 border-white rounded-none p-4 mb-6 relative z-10">
-                <div className="flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 mr-2 text-purple-600 animate-pulse" />
-                  <span className="font-bold text-lg text-white">
-                    Pedido #{orderInfo.orderNumber}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Event Details */}
-            <div className="bg-gradient-to-r from-gray-800 to-gray-900 border-4 border-white rounded-none p-4 mb-6 relative z-10">
-              <h2 className="font-black text-xl mb-4 flex items-center text-white">
-                <Calendar className="w-6 h-6 mr-2 text-purple-400" />
-                Detalhes do Evento
-              </h2>
-
-              <div className="space-y-3 text-sm text-gray-300">
-                <div className="flex items-start">
-                  <MapPin className="w-5 h-5 mr-3 text-purple-400 mt-0.5" />
-                  <div>
-                    <span className="font-bold text-white">Local:</span> Online
-                    (Ao Vivo)
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <Clock className="w-5 h-5 mr-3 text-purple-400 mt-0.5" />
-                  <div>
-                    <div>
-                      <span className="font-bold text-white">Data:</span> à ser
-                      definido (mas provavelmente um sabado ou domingo)
-                    </div>
-                    <div>
-                      <span className="font-bold text-white">Horário:</span> à
-                      ser definido
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <Mail className="w-5 h-5 mr-3 text-purple-400 mt-0.5" />
-                  <div>
-                    <span className="font-bold text-white">Acesso:</span> Link
-                    do meet será enviado via whatsapp 24h antes
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Button */}
-            <div className="relative z-10">
-              <a
-                href="https://wa.me/+5516997556455?text=Olá! Tenho dúvidas sobre o workshop CLI Tools."
-                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-black py-4 px-6 border-4 border-black hover:from-green-600 hover:to-green-700 transition-all transform hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center"
-              >
-                <Mail className="w-5 h-5 mr-2" />
-                Falar com Suporte
-              </a>
-            </div>
-
-            {/* Celebration Text */}
-            <div className="text-center mt-6 relative z-10">
-              <div className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 transform -rotate-2 font-bold">
-                🚀 Bem-vindo ao futuro da programação!
-              </div>
-            </div>
-          </div>
-
-          {/* Footer Note */}
-          <div className="text-center mt-6 text-sm text-gray-300">
-            <p className="font-medium">
-              ✨ Obrigado por fazer parte do Workshop CLI Tools!
-            </p>
-            <p>Prepare-se para elevar suas habilidades. 🎯</p>
-            <p className="font-mono text-xs text-gray-500 mt-2">
-              POWERED_BY: <span className="font-bold">Agentik AI</span>
-            </p>
-          </div>
-        </div>
-      </div>
-    </>
+      </footer>
+    </div>
   );
 }

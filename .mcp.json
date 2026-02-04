@@ -75,6 +75,9 @@
                 "-y",
                 "chrome-devtools-mcp@latest"
             ]
+        },
+        "mercadopago": {
+            "url": "https://mcp.mercadopago.com/mcp"
         }
     }
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import FaultyTerminal from "@/components/FaultyTerminal";
 
 // Google Fonts imports
 import { JetBrains_Mono, VT323 } from 'next/font/google';
@@ -16,9 +17,9 @@ const vt323 = VT323({
 });
 
 export const metadata: Metadata = {
-  title: "Workshop Claude Code Pro - 3h Ao Vivo com Caio Mioto",
-  description: "Workshop exclusivo de Claude Code Pro, Router, GLM e MCP pelo CEO da Agentik AI. Stack IA-first moderna, 100% prático e ao vivo. Domine o ecossistema Claude Code com velocidade e precisão.",
-  keywords: ["Claude Code", "Claude Code Router", "GLM", "MCP", "Workshop", "IA", "Desenvolvimento", "Agentik AI", "Caio Mioto"],
+  title: "Workshop Infinity Canvas - Crie Design com IA (Gratuito)",
+  description: "Aprenda a usar o Nanobanana e ferramentas de IA gratuitas para criar designs incríveis. Vídeos com VEO 3.1 sem custo. Workshop prático com Caio Mioto.",
+  keywords: ["Nanobanana", "Design IA", "Ferramentas Gratuitas", "VEO 3.1", "Workshop", "Infinity Canvas", "Caio Mioto"],
   authors: [{ name: "Caio Mioto - Agentik AI" }],
   icons: {
     icon: [
@@ -29,8 +30,8 @@ export const metadata: Metadata = {
     apple: '/favicon.ico',
   },
   openGraph: {
-    title: "Workshop Claude Code Pro - 3h Ao Vivo com Caio Mioto",
-    description: "Workshop Claude Code Pro focado em Router, GLM e ecossistema MCP. Stack IA-first moderna para desenvolvimento acelerado.",
+    title: "Workshop Infinity Canvas - Design Infinito com IA",
+    description: "Crie qualquer design com IA usando ferramentas 100% gratuitas. Método completo com Nanobanana e VO3.1.",
     type: "website",
   },
 };
@@ -43,10 +44,29 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning={true}>
       <body
-        className={`${jetbrainsMono.variable} ${vt323.variable} font-mono antialiased bg-claude-bg text-claude-text`}
+        className={`${jetbrainsMono.variable} ${vt323.variable} font-mono antialiased text-gemini-text bg-transparent`}
         suppressHydrationWarning={true}
       >
-        {children}
+        <FaultyTerminal
+          scale={1}
+          digitSize={1.5}
+          scanlineIntensity={0.3}
+          glitchAmount={1}
+          flickerAmount={1}
+          noiseAmp={0}
+          chromaticAberration={0}
+          dither={false}
+          curvature={0.2}
+          tint="#ffffff"
+          mouseReact={true}
+          mouseStrength={0.2}
+          brightness={1}
+          pageLoadAnimation={false}
+          className="fixed inset-0 z-0 pointer-events-none opacity-70"
+        />
+        <div className="relative z-10 w-full min-h-screen">
+          {children}
+        </div>
       </body>
     </html>
   );

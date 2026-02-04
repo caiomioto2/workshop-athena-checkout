@@ -9,13 +9,13 @@ interface TopicBlock {
 }
 
 const TopicBlock = ({ title, content }: { title: string; content: string }) => (
-  <div className="border border-claude-border/50 bg-claude-dark/30 p-4 space-y-2">
-    <h3 className="text-orange-500 font-vt323 text-lg font-bold">
+  <div className="border border-gemini-border bg-gemini-surface/50 p-4 space-y-2 rounded-lg hover:border-gemini-accent transition-colors duration-300">
+    <h3 className="gemini-gradient font-vt323 text-lg font-bold">
       {title}
     </h3>
     <div className="flex items-start space-x-2">
-      <span className="text-orange-500 font-vt323 font-bold mt-1">{`>`}</span>
-      <p className="text-gray-300 font-mono text-sm leading-relaxed flex-1">
+      <span className="text-gemini-accent font-vt323 font-bold mt-1">{`>`}</span>
+      <p className="text-gemini-dim font-mono text-sm leading-relaxed flex-1">
         {content}
       </p>
     </div>
@@ -26,48 +26,43 @@ export default function ComoFunciona() {
   const topics: TopicBlock[] = [
     {
       id: 1,
-      title: "DOMÍNIO COMPLETO DO CLAUDE CODE",
-      content: "Você vai aprender os comandos essenciais do Claude Codesetup inicial ."
+      title: "AMBIENTE 100% GRATUITO",
+      content: "Aprenda a configurar um ambiente de trabalho completo sem gastar um centavo. Nada de assinaturas ou softwares pagos."
     },
     {
       id: 2,
-      title: "MODELOS ILIMITADOS COM ROUTER + GLM",
-      content: "Conecte múltiplos modelos de IA sem gastar fortunas. Você vai ver como usar GLM, Gemini e outros modelos para reduzir custos e aumentar sua capacidade de desenvolvimento."
+      title: "ADEUS FERRAMENTAS LIMITADAS",
+      content: "Enquanto a maioria ensina a usar ferramentas caras e limitadas como o Freepik, aqui você aprende um método ilimitado e com total liberdade."
     },
     {
       id: 3,
-      title: "PLUGINS MCP NA PRÁTICA",
-      content: "Instale e configure plugins do marketplace MCP. Crie automações e integrações que funcionam de verdade, sem precisar ser programador expert."
+      title: "DESIGN INFINITO (CARROUSÉIS & ADS)",
+      content: "Crie qualquer tipo de design, carrossel ou anúncio, utilizando tanto prompts quanto referências visuais que você já possui."
     },
     {
       id: 4,
-      title: "ARQUITETURA POR ESPECIFICAÇÃO",
-      content: "Aprenda a criar specs profissionais que geram projetos completos. É assim que empresas sérias desenvolvem software... e você vai dominar isso em 25 minutos."
+      title: "COPY E DESIGN EM UM LUGAR SÓ",
+      content: "Crie agentes, inclusive para escrever a copy dos seus carrosséis, centralizando todo a produção dentro de uma única plataforma."
     },
     {
       id: 5,
-      title: "BOILERPLATES IA-FIRST",
-      content: "Use templates estruturados para manter qualidade e escalar seus projetos. Nada de código bagunçado... só estrutura limpa e reutilizável."
+      title: "MEU FLUXO CRIATIVO",
+      content: "Vou ensinar o meu fluxo pessoal para criar carrosséis com design impecável, da mesma forma que eu crio para minha marca e clientes."
     },
     {
       id: 6,
-      title: "VERSIONAMENTO INTELIGENTE",
-      content: "Git + IA funcionando juntos. Você vai ver como manter histórico limpo e trabalhar com segurança usando Claude Code."
-    },
-    {
-      id: 7,
-      title: "PERGUNTAS E NETWORKING",
-      content: "Tire dúvidas ao vivo e conecte com outros participantes. É sua chance de trocar ideias e descobrir próximos passos."
+      title: "VÍDEOS COM VEO 3.1",
+      content: "Além de imagens, crie vídeos incríveis usando o modelo VEO 3.1 totalmente de graça. Sem pagar APIs ou créditos."
     }
   ];
 
   return (
     <div className="w-full max-w-6xl mx-auto py-16">
       {/* Terminal Window Container */}
-      <div className="bg-[#1e1e1e] rounded-lg overflow-hidden border border-claude-border/30 shadow-2xl">
+      <div className="bg-gemini-surface rounded-lg overflow-hidden border border-gemini-border shadow-2xl shadow-black/40">
 
         {/* Terminal Header */}
-        <div className="bg-gray-900 border-b border-claude-border/30 px-4 py-2 flex items-center justify-between">
+        <div className="bg-gemini-bg/90 border-b border-gemini-border px-4 py-2 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="flex space-x-1">
               <Circle className="w-3 h-3 text-red-500 fill-current" />
@@ -76,20 +71,20 @@ export default function ComoFunciona() {
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <Terminal className="w-4 h-4 text-gray-500" />
-            <span className="text-gray-400 font-mono text-sm">como_funciona.md</span>
+            <Terminal className="w-4 h-4 text-gemini-dim" />
+            <span className="text-gemini-dim font-mono text-sm">como_funciona.md</span>
           </div>
         </div>
 
         {/* Terminal Content */}
-        <div className="p-8 bg-gradient-to-b from-[#1e1e1e] to-[#1a1a1a]">
+        <div className="p-4 md:p-8 bg-gemini-surface">
 
           {/* Main Title */}
           <div className="mb-8 text-center">
-            <h1 className="text-orange-500 font-vt323 text-3xl font-black mb-2">
+            <h1 className="text-gemini-text font-vt323 text-3xl font-black mb-2">
               COMO FUNCIONA O WORKSHOP
             </h1>
-            <div className="w-32 h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent mx-auto"></div>
+            <div className="w-32 h-1 bg-gradient-to-r from-transparent via-gemini-accent to-transparent mx-auto"></div>
           </div>
 
           {/* Topics Grid */}
@@ -104,13 +99,13 @@ export default function ComoFunciona() {
           </div>
 
           {/* Terminal Footer */}
-          <div className="mt-8 pt-6 border-t border-claude-border/30 flex items-center justify-between">
+          <div className="mt-8 pt-6 border-t border-gemini-border flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <span className="text-gray-500 font-mono text-xs">{`>`}</span>
-              <span className="text-gray-400 font-mono text-xs">Pronto para transformar sua produtividade?</span>
+              <span className="text-gemini-dim font-mono text-xs">{`>`}</span>
+              <span className="text-gemini-dim/80 font-mono text-xs">Pronto para demitir seu designer? kkkj</span>
             </div>
             <div className="flex space-x-1">
-              <span className="text-gray-600 animate-pulse">█</span>
+              <span className="text-gemini-accent animate-pulse">█</span>
             </div>
           </div>
         </div>

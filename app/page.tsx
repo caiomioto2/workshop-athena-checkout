@@ -1,590 +1,430 @@
 "use client";
 
-import { useState } from "react";
-import {
-  Sparkles,
-  Code,
-  Terminal,
-  Users,
-  Calendar,
-  Clock,
-  MapPin,
-  CreditCard,
-  CheckCircle,
-  Loader2,
-} from "lucide-react";
-import WorkshopCards from "../components/WorkshopCards";
-import TerminalCard from "../components/TerminalCard";
-import ComoFunciona from "../components/ComoFunciona";
-import { fireConfetti } from "@/components/ui/confetti";
+import Image from 'next/image';
+import { useRef, useState } from 'react';
+import { Loader2, AlertCircle, Terminal, Sparkles, ShieldCheck, Timer, Users, CheckCircle } from "lucide-react";
+import WorkshopCards from '@/components/WorkshopCards';
+import ComoFunciona from '@/components/ComoFunciona';
+import { ShimmerButton } from "@/components/ShimmerButton";
+import { MorphingText } from "@/components/ui/morphing-text";
+
+const TerminalCard = ({ title, children, className = "" }: { title: string, children: React.ReactNode, className?: string }) => (
+  <div className={`bg-[#0c0c0c] border border-gemini-dim rounded-lg overflow-hidden shadow-2xl ${className}`}>
+    <div className="bg-[#1a1a1a] border-b border-gemini-dim px-4 py-2 flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <Terminal className="w-4 h-4 text-gemini-accent" />
+        <span className="font-mono text-sm text-gemini-text opacity-80">{title}</span>
+      </div>
+      <div className="flex gap-1.5">
+        <div className="w-3 h-3 rounded-full bg-red-500/50" />
+        <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
+        <div className="w-3 h-3 rounded-full bg-green-500/50" />
+      </div>
+    </div>
+    <div className="p-6">
+      {children}
+    </div>
+  </div>
+);
+
+const Banner = ({ src, alt, label }: { src: string; alt: string; label?: string }) => (
+  <div className="relative overflow-hidden rounded-2xl border border-gemini-border bg-[#0c0c0c] shadow-[0_0_30px_rgba(38,204,255,0.18)]">
+    <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-black/60" />
+    {label ? (
+      <div className="absolute left-6 top-6 z-10 rounded-full border border-gemini-accent/40 bg-black/70 px-4 py-2 font-mono text-xs uppercase tracking-widest text-gemini-accent shadow-[0_0_20px_rgba(38,204,255,0.35)]">
+        {label}
+      </div>
+    ) : null}
+    <Image
+      src={src}
+      alt={alt}
+      width={1400}
+      height={700}
+      className="h-auto w-full object-cover"
+      priority={false}
+    />
+  </div>
+);
 
 export default function WorkshopCheckout() {
+  const checkoutRef = useRef<HTMLDivElement | null>(null);
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    cpf: "",
+    name: '',
+    email: '',
+    phone: '',
   });
+
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [showForm, setShowForm] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<
-    "idle" | "processing" | "success" | "error"
-  >("idle");
-  const [pixData, setPixData] = useState<{
-    qrCode?: string;
-    qrCodeUrl?: string;
-    paymentUrl?: string;
-    billingId: string;
-  } | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [fieldErrors, setFieldErrors] = useState<{
-    email?: string;
-    phone?: string;
-    cpf?: string;
-  }>({});
 
-  // CPF validation function
-  const validateCPF = (cpf: string): boolean => {
-    // Remove all non-digit characters
-    const cleanCPF = cpf.replace(/\D/g, "");
-
-    // Check if CPF has exactly 11 digits
-    if (cleanCPF.length !== 11) return false;
-
-    // Check if all digits are the same (invalid CPF)
-    if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
-
-    // Calculate first verification digit
-    let sum = 0;
-    for (let i = 0; i < 9; i++) {
-      sum += parseInt(cleanCPF.charAt(i)) * (10 - i);
-    }
-    let remainder = sum % 11;
-    const digit1 = remainder < 2 ? 0 : 11 - remainder;
-
-    // Calculate second verification digit
-    sum = 0;
-    for (let i = 0; i < 10; i++) {
-      sum += parseInt(cleanCPF.charAt(i)) * (11 - i);
-    }
-    remainder = sum % 11;
-    const digit2 = remainder < 2 ? 0 : 11 - remainder;
-
-    // Check if the calculated digits match the provided ones
-    return (
-      parseInt(cleanCPF.charAt(9)) === digit1 &&
-      parseInt(cleanCPF.charAt(10)) === digit2
-    );
-  };
-
-  // Email validation function
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  // Phone validation function (Brazilian phone numbers)
-  const validatePhone = (phone: string): boolean => {
-    // Remove all non-digit characters
-    const cleanPhone = phone.replace(/\D/g, "");
-
-    // Check if it has 10 or 11 digits (with or without 9)
-    return cleanPhone.length === 10 || cleanPhone.length === 11;
+  const jumpToCheckout = () => {
+    setShowForm(true);
+    requestAnimationFrame(() => {
+      checkoutRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    let formattedValue = value;
 
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-
-    // Real-time validation
-    const newFieldErrors = { ...fieldErrors };
-
-    if (name === "email") {
-      if (value && !validateEmail(value)) {
-        newFieldErrors.email = "Email inválido";
-      } else {
-        delete newFieldErrors.email;
-      }
+    if (name === 'phone') {
+      formattedValue = value.replace(/\D/g, '')
+        .replace(/^(\d{2})(\d)/g, '($1) $2')
+        .replace(/(\d)(\d{4})$/, '$1-$2')
+        .substring(0, 15);
     }
 
-    if (name === "phone") {
-      if (value && !validatePhone(value)) {
-        newFieldErrors.phone = "Celular inválido";
-      } else {
-        delete newFieldErrors.phone;
-      }
-    }
-
-    if (name === "cpf") {
-      if (value && !validateCPF(value)) {
-        newFieldErrors.cpf = "CPF inválido";
-      } else {
-        delete newFieldErrors.cpf;
-      }
-    }
-
-    setFieldErrors(newFieldErrors);
+    setFormData(prev => ({ ...prev, [name]: formattedValue }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
-
-    // Validate CPF first
-    if (!validateCPF(formData.cpf)) {
-      setPaymentStatus("error");
-      setErrorMessage(
-        "CPF inválido. Verifique se você digitou todos os 11 dígitos corretamente.",
-      );
-      setLoading(false);
-      return;
-    }
-
-    // Validate email
-    if (!validateEmail(formData.email)) {
-      setPaymentStatus("error");
-      setErrorMessage(
-        "Email inválido. Verifique se você digitou um email válido (ex: nome@dominio.com).",
-      );
-      setLoading(false);
-      return;
-    }
-
-    // Validate phone
-    if (!validatePhone(formData.phone)) {
-      setPaymentStatus("error");
-      setErrorMessage(
-        "Celular inválido. Verifique se você digitou um número válido com DDD (ex: (11) 99999-9999).",
-      );
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
-    setPaymentStatus("processing");
+
+    if (!formData.name.trim() || !formData.email.trim() || !formData.phone.trim()) {
+      setErrorMessage("Por favor, preencha todos os campos.");
+      setLoading(false);
+      return;
+    }
 
     try {
-      const response = await fetch("/api/infinite-pay/checkout", {
-        method: "POST",
+      const response = await fetch('/api/mercadopago/checkout', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          customer: {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            document: formData.cpf,
-          },
-          items: [
-            {
-              name: "Workshop Claude Code Pro",
-              description:
-                "Workshop de Claude Code & Gemini CLI - Networking & Hands-on",
-              quantity: 1,
-              price: 2000, // R$ 20,00 em centavos
-            },
-          ],
-          order_nsu: `ATHENA-${Date.now()}`,
-          redirect_url: `${window.location.origin}/success`,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone.replace(/\D/g, ''),
+          description: 'Workshop Nanobanana Core'
         }),
       });
 
       const data = await response.json();
 
-      if (response.ok && data.success) {
-        // Redirect to Infinite Pay checkout URL
-        if (data.url) {
-          window.location.href = data.url;
-        } else {
-          // Fallback: Show checkout URL as QR code for manual access
-          setPixData({
-            qrCode: data.url || "checkout-url-unavailable",
-            qrCodeUrl: data.url || "#",
-            paymentUrl: data.url,
-            billingId: data.order_nsu,
-          });
-          setPaymentStatus("success");
-        }
-        console.log("Cobrança criada:", data);
-
-        // Trigger basic confetti when payment is successful
-        setTimeout(() => {
-          fireConfetti({
-            particleCount: 50,
-            spread: 45,
-            origin: { y: 0.6 },
-            colors: ["#26ccff", "#a25afd", "#ff5e7e"],
-          });
-        }, 300);
-      } else {
-        setPaymentStatus("error");
-        // Check if error might be related to invalid CPF
-        const errorMsg = data.error || "";
-        if (
-          errorMsg.toLowerCase().includes("taxid") ||
-          errorMsg.toLowerCase().includes("cpf")
-        ) {
-          setErrorMessage("Erro ao conectar com o servidor. Tente novamente.");
-        } else {
-          setErrorMessage(
-            `${data.error || "Erro ao processar pagamento. Tente novamente."}`,
-          );
-        }
-        console.error("Erro pagamento:", data);
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao iniciar pagamento');
       }
-    } catch (error) {
-      console.error("Erro ao processar pagamento:", error);
-      setPaymentStatus("error");
-      setErrorMessage(
-        `Erro ao conectar com o servidor. Tente novamente. ⚠️ Verifique se seu CPF está correto.`,
-      );
-    } finally {
+
+      const redirectUrl = data.init_point || data.sandbox_init_point;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      } else {
+        throw new Error('Link de pagamento não recebido.');
+      }
+
+    } catch (error: any) {
+      console.error('Checkout Error:', error);
+      setErrorMessage(error.message || 'Erro inesperado.');
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      {/* Header */}
-      <header className="max-w-7xl mx-auto mb-12 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="bg-claude-dark border border-claude-border p-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <Terminal className="w-8 h-8 text-claude-accent" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-vt323 text-claude-dark">
-              WORKSHOP_CLAUDE_CODE
-            </h1>
-            <p className="text-sm font-mono text-claude-dark/70">
-              por Agentik AI
+    <div className="min-h-screen bg-transparent text-gemini-text font-sans selection:bg-gemini-accent selection:text-black pb-20">
+      {/* <div className="fixed inset-0 bg-[linear-gradient(rgba(18,18,18,0)_1px,transparent_1px),linear-gradient(90deg,rgba(18,18,18,0)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] pointer-events-none opacity-70" /> */}
+
+      <main className="container mx-auto px-4 pt-16 md:pt-20 relative z-10 max-w-6xl space-y-20">
+        <section className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 items-center">
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 bg-gemini-surface/70 border border-gemini-border px-4 py-2 rounded-full font-mono text-xs text-gemini-dim">
+              <span className="text-green-400">●</span> WORKSHOP AO VIVO · VAGAS LIMITADAS
+            </div>
+            <div className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight text-gemini-text leading-tight flex flex-wrap items-center font-sans">
+              <span>Crie</span>
+              <MorphingText
+                className="inline-flex items-center w-[180px] md:w-[280px] h-[1em] text-3xl md:text-5xl lg:text-6xl font-black text-gemini-accent text-left leading-none mt-[-0.1em] ml-3"
+                texts={["anúncios", "carrosséis", "vídeos"]}
+              />
+              <span className="whitespace-nowrap">com IA de graça.</span>
+            </div>
+            <p className="text-gemini-dim font-mono text-sm md:text-base max-w-xl">
+              Vou te mostrar como eu configuro um ambiente zero custo e como uso a API do Google de forma ilimitada, sem pagar APIs e sem precisar desenvolver nada.
             </p>
-          </div>
-        </div>
-        <div className="hidden sm:block">
-          <div className="bg-claude-dark text-claude-text border border-claude-border px-4 py-2 font-vt323 text-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            MODO_WORKSHOP: ATIVO
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12">
-        {/* Left Column */}
-        <div className="space-y-12">
-          <TerminalCard title="welcome.sh">
-            <div className="flex items-center gap-3 mb-6">
-              <span className="bg-claude-accent text-claude-dark px-2 py-1 font-bold font-mono text-xs">
-                VAGAS_LIMITADAS
-              </span>
-              <span className="text-claude-accent font-vt323 text-xl animate-pulse">
-                🔥 oferta_expira_em_breve
-              </span>
+            <div className="flex flex-wrap items-center gap-4">
+              <ShimmerButton
+                onClick={jumpToCheckout}
+                shimmerColor="#ffffff"
+                background="#4AA9FF"
+                className="shadow-[0_0_30px_rgba(74,169,255,0.6)]"
+              >
+                <span className="flex items-center gap-2 font-black tracking-widest text-white">
+                  GARANTIR MINHA VAGA
+                </span>
+              </ShimmerButton>
+              <div className="text-gemini-dim font-mono text-xs flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-gemini-accent" />
+                Checkout seguro pelo Mercado Pago
+              </div>
             </div>
+            <div className="flex flex-wrap gap-6 text-xs font-mono text-gemini-dim">
+              <div className="flex items-center gap-2">
+                <Timer className="w-4 h-4 text-gemini-accent" />
+                Configuração rápida e sem código
+              </div>
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-gemini-accent" />
+                Ambiente gratuito e ilimitado
+              </div>
+            </div>
+          </div>
 
-            <h2 className="text-5xl md:text-6xl font-vt323 text-claude-text mb-6 leading-none">
-              WORKSHOP <br />
-              <span className="text-claude-accent">CLAUDE_CODE_PRO</span>
-            </h2>
+          <div className="bg-gemini-surface/60 border border-gemini-border rounded-2xl p-6 md:p-8 shadow-[0_0_40px_rgba(38,204,255,0.2)] space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="font-vt323 text-3xl text-gemini-text">O que você leva</h2>
+              <span className="text-xs font-mono text-gemini-dim">[ premium ]</span>
+            </div>
+            <ul className="space-y-3 text-sm font-mono text-gemini-dim">
+              <li>{`>`} Setup zero custo (passo a passo)</li>
+              <li>{`>`} Uso real da API do Google sem cobrança</li>
+              <li>{`>`} Design e vídeo com IA, sem dev</li>
+              <li>{`>`} Como eu crio carrosséis e vídeos para o Instagram</li>
+            </ul>
+            <div className="pt-4 border-t border-dashed border-gemini-dim/60 flex items-center justify-between">
+              <span className="text-gemini-accent font-mono text-xs">{`>>`} Vagas limitadas</span>
+              <span className="text-gemini-text font-mono text-sm">R$ 27,90</span>
+            </div>
+          </div>
+        </section>
 
-            <p className="text-xl font-mono text-claude-dim mb-8 border-l-2 border-claude-accent pl-4">
-              Stack IA-first: Claude Code, Router, GLM e MCP — 3h Ao Vivo
+        <section className="grid lg:grid-cols-[1.2fr_0.8fr] gap-10 items-start">
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 font-mono text-gemini-accent text-sm">
+              <span>{`>`}</span>
+              <span>CONTEÚDO DO WORKSHOP</span>
+            </div>
+            <WorkshopCards />
+          </div>
+
+          <div className="bg-[#0c0c0c] border border-gemini-border rounded-xl p-6">
+            <h3 className="font-vt323 text-2xl text-gemini-text mb-3">Para quem é</h3>
+            <ul className="space-y-3 text-sm font-mono text-gemini-dim">
+              <li>{`>`} Quem quer cortar custos com ferramentas e assinaturas</li>
+              <li>{`>`} Empreendedores que buscam autonomia e escala</li>
+              <li>{`>`} Donos de negócio que não querem depender de agências</li>
+            </ul>
+            <div className="mt-6 border-t border-dashed border-gemini-dim/60 pt-4 text-xs font-mono text-gemini-dim">
+              {`>>`} Se você quer parar de gastar e começar a lucrar com IA, essa turma é pra você.
+            </div>
+          </div>
+        </section>
+
+        <section className="grid lg:grid-cols-[1.1fr_0.9fr] gap-8 items-start">
+          <div className="space-y-8">
+            <Banner src="/1.png" alt="Nano banana core" label="NANO BANANA CORE" />
+            <Banner src="/2.png" alt="Ambiente 100% gratuito" />
+            <Banner src="/veo31.png" alt="VEO 3.1" label="VEO 3.1" />
+          </div>
+
+          <aside className="lg:sticky lg:top-24 space-y-4 rounded-2xl border border-gemini-border bg-gemini-surface/70 p-6 shadow-[0_0_30px_rgba(38,204,255,0.18)]">
+            <div className="text-xs font-mono text-gemini-dim">{`>>`} Garanta sua vaga agora</div>
+            <h3 className="font-vt323 text-3xl text-gemini-text">Nanobanana Core</h3>
+            <p className="text-sm font-mono text-gemini-dim">
+              Ambiente zero custo para design e vídeo com IA. Sem dev, sem pagar APIs.
             </p>
-
-            <div className="bg-[#1a1a1a] border border-claude-border p-6 font-mono text-sm text-claude-dim">
-              <p className="mb-4">
-                <span className="text-claude-accent mr-2">$</span>
-                <span className="text-claude-text">
-                  ./run_workshop --focus=productivity
-                </span>
-              </p>
-              <p>
-                Carregando módulo...{" "}
-                <span className="text-claude-accent">Claude Code Router</span>
-                <br />
-                Carregando módulo...{" "}
-                <span className="text-claude-accent">GLM</span>
-                <br />
-                Carregando módulo...{" "}
-                <span className="text-claude-accent">Ecossistema MCP</span>
-                <br />
-                <br />
-                <span className="text-[#27C93F]">
-                  {`>>`} PRONTO PARA ACELERAR O DESENVOLVIMENTO
-                </span>
-              </p>
+            <div className="flex items-baseline gap-1">
+              <span className="text-sm text-gemini-dim">R$</span>
+              <span className="text-3xl font-mono text-white">27</span>
+              <span className="text-sm text-gemini-dim">,90</span>
             </div>
-          </TerminalCard>
-
-          <TerminalCard title="detalhes_evento.json">
-            <h3 className="text-2xl font-vt323 text-claude-text mb-6 flex items-center gap-2">
-              <Calendar className="w-6 h-6 text-claude-accent" />
-              DETALHES_DO_EVENTO
-            </h3>
-
-            <div className="grid sm:grid-cols-2 gap-4">
-              {[
-                { icon: Calendar, label: "DATA", value: "EM_BREVE" },
-                { icon: Clock, label: "DURAÇÃO", value: "3H_AO_VIVO" },
-                { icon: MapPin, label: "LOCAL", value: "ONLINE_MEET" },
-                { icon: Users, label: "CAPACIDADE", value: "VAGAS_LIMITADAS" },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  className="bg-[#1a1a1a] border border-claude-border p-4 hover:border-claude-accent transition-colors group"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <item.icon className="w-5 h-5 text-claude-dim group-hover:text-claude-accent transition-colors" />
-                    <span className="font-mono text-xs text-claude-dim">
-                      {item.label}
-                    </span>
-                  </div>
-                  <p className="font-vt323 text-xl text-claude-text">
-                    {item.value}
-                  </p>
-                </div>
-              ))}
+            <ShimmerButton
+              onClick={jumpToCheckout}
+              shimmerColor="#ffffff"
+              background="#4AA9FF"
+              className="w-full shadow-[0_0_30px_rgba(74,169,255,0.6)]"
+            >
+              <span className="font-black tracking-widest text-white">GARANTIR MINHA VAGA</span>
+            </ShimmerButton>
+            <div className="text-xs font-mono text-gemini-dim">
+              Checkout seguro via Mercado Pago
             </div>
-          </TerminalCard>
+          </aside>
+        </section>
 
-          <TerminalCard title="organizer.txt">
-            <div className="flex flex-col md:flex-row items-center gap-8">
-              <div className="relative w-32 h-32 shrink-0">
-                <img
-                  src="/profile-photo.png"
-                  alt="Caio Mioto"
-                  className="w-full h-full border-2 border-claude-accent shadow-[4px_4px_0px_0px_#FF5E3A] object-contain bg-[#1a1a1a]"
+        <ComoFunciona />
+
+        <section className="grid md:grid-cols-2 gap-12 items-center bg-[#0c0c0c] border border-gemini-border rounded-2xl p-8 md:p-12 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gemini-accent/5 rounded-full blur-3xl -z-10" />
+
+          <div className="relative w-48 md:w-64 mx-auto md:mx-0">
+            <div className="relative aspect-square w-full rounded-full overflow-hidden border-2 border-gemini-accent/20 shadow-2xl shadow-gemini-accent/10">
+              <Image
+                src="/caio-mioto-photo.png"
+                alt="Caio Mioto"
+                fill
+                className="object-cover"
+              />
+            </div>
+            <div className="absolute bottom-0 -right-4 bg-black/90 backdrop-blur-md border border-gemini-border/50 rounded-full p-2 px-4 flex items-center gap-2 shadow-xl z-10">
+              <div className="relative w-5 h-5">
+                <Image
+                  src="/agentik-logo-new.png"
+                  alt="Agentik AI"
+                  fill
+                  className="object-contain"
                 />
               </div>
-              <div className="text-center md:text-left">
-                <h4 className="text-3xl font-vt323 text-claude-text mb-2">
-                  CAIO MIOTO
-                </h4>
-                <p className="font-mono text-claude-accent text-sm mb-4">
-                  CEO @ AGENTIK_AI
-                </p>
-                <p className="font-mono text-sm text-claude-dim leading-relaxed">
-                  "Especialista em Automação & IA para Marketing e Vendas. Vou
-                  ser seu guia e mostrar como eu uso o Claude Code para
-                  construir sites igual esse que você está agora."
-                </p>
-              </div>
+              <span className="text-[10px] font-mono text-gemini-text/80 tracking-wider">
+                POWERED BY AGENTIK
+              </span>
             </div>
-          </TerminalCard>
-
-          <div className="mt-8 mb-8">
-            <ComoFunciona />
           </div>
 
-          <TerminalCard title="curriculum.tree">
-            <h3 className="text-2xl font-vt323 text-claude-text mb-8">
-              ESTRUTURA_DO_WORKSHOP
-            </h3>
-            <div className="min-h-[350px]">
-              <WorkshopCards />
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 bg-gemini-surface border border-gemini-border px-3 py-1 rounded-full font-mono text-xs text-gemini-dim">
+              <span className="text-gemini-accent">@</span> SEU MENTOR
             </div>
-          </TerminalCard>
-        </div>
 
-        {/* Right Column */}
-        <div className="lg:sticky lg:top-8 h-fit">
-          <TerminalCard
-            title="payment_gateway.exe"
-            className="border-claude-accent"
-          >
-            <div className="text-center mb-8 border-b border-claude-border pb-8">
-              <div className="inline-block bg-claude-accent text-claude-dark px-4 py-1 font-vt323 text-xl mb-4">
-                OFERTA_UNICA
-              </div>
-              <div className="flex items-baseline justify-center gap-1 mb-2">
-                <span className="text-2xl font-mono text-claude-dim">R$</span>
-                <span className="text-7xl font-vt323 text-claude-text">20</span>
-              </div>
-              <p className="font-mono text-xs text-claude-dim">
-                METODO_PAGAMENTO: PIX
+            <h2 className="font-vt323 text-3xl md:text-5xl text-gemini-text leading-none">
+              Caio Mioto
+            </h2>
+
+            <div className="space-y-4 font-mono text-gemini-dim text-sm md:text-base leading-relaxed">
+              <p>
+                Founder da <span className="text-gemini-accent">Agentik AI</span>. Criei o método Core porque cansei de pagar caro em ferramentas que eu poderia rodar localmente.
+              </p>
+              <p>
+                Hoje ajudo empreendedores e donos de negócio a montarem seu próprio laboratório de IA, focando em liberdade criativa e zero custo fixo.
+              </p>
+              <p>
+                O objetivo desse workshop <strong className="text-white">não é eu ganhar dinheiro</strong>, mas você pagar uma taxa simbólica para dar valor. Porque o que é gratuito, a gente acaba não priorizando.
+              </p>
+              <p>
+                Não é sobre "prompt", é sobre <strong className="text-white">fluxo de trabalho</strong>.
               </p>
             </div>
 
-            {paymentStatus === "idle" && !showForm && (
-              <div className="text-center">
-                <button
+            <div className="pt-6 border-t border-dashed border-gemini-border/50">
+              <p className="text-xs font-mono text-gemini-dim">
+                {`>>`} Especialista em Automação Criativa & IA Generativa
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="max-w-3xl mx-auto text-center bg-[#0c0c0c] border border-gemini-border rounded-2xl p-6 md:p-8 shadow-[0_0_24px_rgba(38,204,255,0.12)]">
+          <p className="text-sm md:text-base text-gemini-dim font-mono">
+            Bom, se você chegou até aqui e não tá convencido ainda, é melhor você ficar pagando ferramenta limitada mesmo, tipo Freepik.
+          </p>
+          <p className="mt-3 text-xs md:text-sm text-gemini-dim font-mono">
+            Compra logo essa porra e aprende a não gastar mais com essas porcarias aí.
+          </p>
+        </section>
+
+        <section ref={checkoutRef} className="max-w-2xl mx-auto scroll-mt-24">
+          <TerminalCard title="workshop_checkout.exe" className="border-gemini-accent/50">
+            <div className="mb-8 text-center">
+              <h1 className="font-vt323 text-3xl md:text-4xl lg:text-5xl font-black text-white mb-3 uppercase tracking-wider drop-shadow-[0_0_15px_rgba(74,169,255,0.4)]">
+                WORKSHOP <span className="text-gemini-accent">NANOBANANA</span> CORE
+              </h1>
+              <div className="inline-block bg-gemini-surface border border-gemini-accent/20 px-3 py-1 rounded text-sm text-gemini-dim font-mono">
+                <span className="text-green-400">●</span> VAGAS LIMITADAS
+              </div>
+
+              <div className="mt-6 mb-8 text-left max-w-sm mx-auto space-y-3 font-mono text-sm text-gemini-dim">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-gemini-accent" />
+                  <span className="text-white">Acesso ao Workshop Ao Vivo</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-gemini-accent" />
+                  <span>Gravação Vitalícia</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-gemini-accent" />
+                  <span>Setup do Ambiente Zero Custo</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-gemini-accent" />
+                  <span>Pack de Prompts Nanobanana</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-gemini-accent" />
+                  <span>Bônus: Criação de Vídeos com VEO 3.1</span>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-center items-baseline gap-1">
+                <span className="text-sm text-gemini-dim">R$</span>
+                <span className="text-4xl font-mono text-white">27</span>
+                <span className="text-sm text-gemini-dim">,90</span>
+              </div>
+            </div>
+
+            {!showForm ? (
+              <div className="text-center mt-6">
+                <ShimmerButton
                   onClick={() => setShowForm(true)}
-                  className="w-full bg-claude-accent text-claude-dark font-vt323 text-2xl py-4 border-2 border-claude-text shadow-[4px_4px_0px_0px_#F0F0F0] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_#F0F0F0] transition-all active:translate-y-[4px] active:translate-x-[4px] active:shadow-none"
+                  shimmerColor="#ffffff"
+                  background="#4AA9FF"
+                  className="w-full py-4 shadow-[0_0_30px_rgba(74,169,255,0.6)]"
                 >
-                  [ GARANTIR_VAGA ]
-                </button>
-                <p className="font-mono text-xs text-claude-dim mt-4">
-                  {`>`} Conexão segura estabelecida...
+                  <span className="font-black tracking-widest text-white text-lg">GARANTIR MINHA VAGA</span>
+                </ShimmerButton>
+                <p className="mt-4 text-xs text-gemini-dim font-mono">
+                  * Você será redirecionado para o Checkout Seguro
                 </p>
               </div>
-            )}
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 mt-6">
+                <div className="space-y-4">
+                  {[
+                    { id: "name", label: "NOME COMPLETO *", type: "text", placeholder: "SEU NOME", required: true },
+                    { id: "email", label: "EMAIL *", type: "email", placeholder: "SEU MELHOR EMAIL", required: true },
+                    { id: "phone", label: "WHATSAPP (COM DDD) *", type: "tel", placeholder: "(00) 90000-0000", maxLength: 15, required: true },
+                  ].map((field) => (
+                    <div key={field.id}>
+                      <label className="block font-mono text-xs text-gemini-accent mb-1 ml-1 opacity-80">{field.label}</label>
+                      <input
+                        type={field.type}
+                        name={field.id}
+                        value={(formData as any)[field.id]}
+                        onChange={handleInputChange}
+                        placeholder={field.placeholder}
+                        maxLength={field.maxLength}
+                        className="w-full bg-[#0a0a0a] border border-gemini-dim text-white px-4 py-3 rounded focus:border-gemini-accent outline-none font-mono placeholder:text-gray-800 transition-colors focus:bg-[#111]"
+                        required={field.required}
+                      />
+                    </div>
+                  ))}
+                </div>
 
-            {paymentStatus === "idle" && showForm && (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {[
-                  { id: "name", label: "NOME" },
-                  { id: "email", label: "EMAIL" },
-                  { id: "phone", label: "CELULAR" },
-                  { id: "cpf", label: "CPF" },
-                ].map((field) => (
-                  <div key={field.id}>
-                    <label className="block font-mono text-xs text-claude-accent mb-1 uppercase">
-                      {field.label}
-                    </label>
-                    <input
-                      type={
-                        field.id === "email"
-                          ? "email"
-                          : field.id === "phone"
-                            ? "tel"
-                            : "text"
-                      }
-                      name={field.id}
-                      required
-                      value={(formData as any)[field.id]}
-                      onChange={handleInputChange}
-                      className={`w-full bg-[#1a1a1a] border font-mono px-4 py-3 focus:outline-none transition-colors ${
-                        fieldErrors[field.id as keyof typeof fieldErrors]
-                          ? "border-red-500 text-red-400"
-                          : "border-claude-border text-claude-text focus:border-claude-accent"
-                      }`}
-                      placeholder={`Digite ${field.label}...`}
-                    />
-                    {fieldErrors[field.id as keyof typeof fieldErrors] && (
-                      <p className="text-red-500 text-xs font-mono mt-1">
-                        ⚠️ {fieldErrors[field.id as keyof typeof fieldErrors]}
-                      </p>
+                <div className="pt-4">
+                  <ShimmerButton
+                    type="submit"
+                    disabled={loading}
+                    shimmerColor="#ffffff"
+                    background="#4AA9FF"
+                    className="w-full py-4 shadow-[0_0_20px_rgba(74,169,255,0.4)] hover:shadow-[0_0_30px_rgba(74,169,255,0.6)]"
+                  >
+                    {loading ? (
+                      <div className="flex items-center gap-2 text-white">
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span className="animate-pulse">CARREGANDO...</span>
+                      </div>
+                    ) : (
+                      <span className="font-bold text-lg text-white">IR PARA PAGAMENTO</span>
                     )}
-                  </div>
-                ))}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full mt-6 bg-claude-accent text-claude-dark font-vt323 text-2xl py-4 border-2 border-claude-text shadow-[4px_4px_0px_0px_#F0F0F0] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_#F0F0F0] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      PROCESSANDO...
-                    </>
-                  ) : (
-                    "[ CONFIRMAR_TRANSACAO ]"
-                  )}
-                </button>
-              </form>
-            )}
-
-            {paymentStatus === "success" && pixData && (
-              <div className="text-center space-y-6">
-                <div className="bg-[#27C93F]/20 border border-[#27C93F] p-4">
-                  <p className="font-vt323 text-2xl text-[#27C93F]">
-                    TRANSACTION_CREATED
+                  </ShimmerButton>
+                  <p className="mt-4 text-xs text-gemini-dim font-mono text-center">
+                    Ambiente seguro via Mercado Pago
                   </p>
                 </div>
 
-                {pixData.qrCodeUrl ? (
-                  <div className="bg-white p-4 inline-block mx-auto border-4 border-white">
-                    <img
-                      src={pixData.qrCodeUrl}
-                      alt="QR Code"
-                      className="w-48 h-48"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-full space-y-4">
-                    <p className="font-mono text-sm text-claude-dim mb-2">
-                      Finalize o pagamento abaixo:
-                    </p>
-
-                    {/* Iframe for integrated payment */}
-                    {pixData.paymentUrl && (
-                      <div className="w-full h-[600px] border-2 border-claude-dim bg-white">
-                        <iframe
-                          src={pixData.paymentUrl}
-                          className="w-full h-full"
-                          title="Pagamento PIX"
-                        />
-                      </div>
-                    )}
-
-                    {/* Fallback button */}
-                    <a
-                      href={pixData.paymentUrl}
-                      className="inline-block bg-claude-accent text-claude-dark font-vt323 text-xl py-2 px-6 border-2 border-claude-text shadow-[4px_4px_0px_0px_#F0F0F0] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_#F0F0F0] transition-all"
-                    >
-                      [ ABRIR_EM_NOVA_ABA ]
-                    </a>
-                  </div>
-                )}
-
-                {pixData.qrCode && (
-                  <div className="space-y-2">
-                    <p className="font-mono text-xs text-claude-dim">
-                      PIX_COPY_PASTE:
-                    </p>
-                    <div className="bg-[#1a1a1a] p-3 border border-claude-border font-mono text-xs text-claude-dim break-all">
-                      {pixData.qrCode}
-                    </div>
-                    <button
-                      onClick={() =>
-                        navigator.clipboard.writeText(pixData.qrCode!)
-                      }
-                      className="w-full border border-claude-dim text-claude-dim font-mono text-xs py-2 hover:bg-claude-dim hover:text-claude-dark transition-colors"
-                    >
-                      [ COPY_CODE ]
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {paymentStatus === "error" && (
-              <div className="bg-red-500/20 border border-red-500 p-6 text-center">
-                <p className="font-vt323 text-xl text-red-500 mb-4">
-                  ERROR: TRANSACTION_FAILED
-                </p>
                 {errorMessage && (
-                  <p className="text-red-400 text-sm mb-4 font-mono">
-                    {errorMessage}
-                  </p>
+                  <div className="p-3 border border-red-500/50 bg-red-500/10 rounded text-center animate-in fade-in">
+                    <p className="text-red-400 font-mono text-xs">{errorMessage}</p>
+                  </div>
                 )}
-                <button
-                  onClick={() => {
-                    setPaymentStatus("idle");
-                    setErrorMessage("");
-                  }}
-                  className="text-red-500 font-mono text-xs underline decoration-red-500"
-                >
-                  {`>`} RETRY_CONNECTION
-                </button>
-              </div>
+              </form>
             )}
-
-            <div className="mt-8 pt-6 border-t border-claude-border flex justify-center gap-6">
-              <div className="flex items-center gap-2 text-claude-dim">
-                <CheckCircle className="w-4 h-4" />
-                <span className="font-mono text-xs">SSL_SECURE</span>
-              </div>
-              <div className="flex items-center gap-2 text-claude-dim">
-                <Terminal className="w-4 h-4" />
-                <span className="font-mono text-xs">INSTANT_ACCESS</span>
-              </div>
-            </div>
           </TerminalCard>
-        </div>
+        </section>
       </main>
-
-      <footer className="max-w-7xl mx-auto mt-20 pt-8 border-t border-claude-dark/20 text-center pb-8">
-        <p className="font-mono text-xs text-claude-dark/60">
-          © 2025 FERRAMENTAS_CLI_WORKSHOP <br />
-          POWERED_BY: <span className="font-bold">Agentik AI</span>
-        </p>
-      </footer>
     </div>
   );
 }
