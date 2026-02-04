@@ -5,6 +5,7 @@ import { useRef, useState } from 'react';
 import { Loader2, AlertCircle, Terminal, Sparkles, ShieldCheck, Timer, Users, CheckCircle } from "lucide-react";
 import WorkshopCards from '@/components/WorkshopCards';
 import ComoFunciona from '@/components/ComoFunciona';
+import FAQ from '@/components/FAQ';
 import { ShimmerButton } from "@/components/ShimmerButton";
 import { MorphingText } from "@/components/ui/morphing-text";
 
@@ -132,7 +133,7 @@ export default function WorkshopCheckout() {
         <section className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 items-center">
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 bg-gemini-surface/70 border border-gemini-border px-4 py-2 rounded-full font-mono text-xs text-gemini-dim">
-              <span className="text-green-400">●</span> WORKSHOP AO VIVO · VAGAS LIMITADAS
+              <span className="text-green-400">●</span> WORKSHOP AO VIVO: 12/02 ÀS 20H
             </div>
             <div className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight text-gemini-text leading-tight flex flex-wrap items-center font-sans">
               <span>Crie</span>
@@ -176,7 +177,7 @@ export default function WorkshopCheckout() {
           <div className="bg-gemini-surface/60 border border-gemini-border rounded-2xl p-6 md:p-8 shadow-[0_0_40px_rgba(38,204,255,0.2)] space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="font-vt323 text-3xl text-gemini-text">O que você leva</h2>
-              <span className="text-xs font-mono text-gemini-dim">[ premium ]</span>
+              <span className="text-xs font-mono text-gemini-dim">[ 12/02 às 20h ]</span>
             </div>
             <ul className="space-y-3 text-sm font-mono text-gemini-dim">
               <li>{`>`} Setup zero custo (passo a passo)</li>
@@ -306,6 +307,8 @@ export default function WorkshopCheckout() {
           </div>
         </section>
 
+        <FAQ />
+
         <section className="max-w-3xl mx-auto text-center bg-[#0c0c0c] border border-gemini-border rounded-2xl p-6 md:p-8 shadow-[0_0_24px_rgba(38,204,255,0.12)]">
           <p className="text-sm md:text-base text-gemini-dim font-mono">
             Bom, se você chegou até aqui e não tá convencido ainda, é melhor você ficar pagando ferramenta limitada mesmo, tipo Freepik.
@@ -322,7 +325,7 @@ export default function WorkshopCheckout() {
                 WORKSHOP <span className="text-gemini-accent">NANOBANANA</span> CORE
               </h1>
               <div className="inline-block bg-gemini-surface border border-gemini-accent/20 px-3 py-1 rounded text-sm text-gemini-dim font-mono">
-                <span className="text-green-400">●</span> VAGAS LIMITADAS
+                <span className="text-green-400">●</span> AO VIVO: 12/02 ÀS 20H
               </div>
 
               <div className="mt-6 mb-8 text-left max-w-sm mx-auto space-y-3 font-mono text-sm text-gemini-dim">
