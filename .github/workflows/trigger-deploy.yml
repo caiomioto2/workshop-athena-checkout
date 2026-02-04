@@ -1,0 +1,27 @@
+name: Trigger Vercel Deploy
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 9 * * *' # 09:00 UTC = 06:00 BRT
+
+jobs:
+  trigger-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Git
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+
+      - name: Create Empty Commit
+        run: |
+          git commit --allow-empty -m "chore: trigger delayed deployment [skip ci]"
+          git push
